@@ -98,6 +98,9 @@ costMultipliers = {
     szint : {sz2: 2, sz3: 4, sz4: 7, sz5: 10, sz6: 14, sz7: 19, sz8: 26, sz9: 31, sz10: 31, sz11: 31, sz12: 31, sz13: 31}
 }
 
+sendError = ->
+sendValue = ->
+
 calculateCost = (modifiers) ->
     data = getLevelData(modifiers, ['szint','idotartam','beszerzes'])
     {eros, gyenge, fo} = getPoisonLevelData(data)
@@ -110,10 +113,13 @@ calculateCost = (modifiers) ->
 
 t = (key) -> _.capitalize(translate(key))
 
-valueProviders = {
-  tobb : () -> 30 * @getNumber(t('tobb'))
-  fp_vesztes : () -> 2 * @getNumber(t('fp_vesztes'))
-}
+valueProviders =
+  tobb : () -> @getNumber(t('tobb'))
+  fp_vesztes : () -> @getNumber(t('fp_vesztes'))
+
+valueDifficultyCalculator =
+  tobb : (val) -> 30 * val
+  fp_vesztes : (val) -> 2 * val
 
 cacheOverride = (name, fn) ->
    cache = null
@@ -134,12 +140,18 @@ getDifficultyForModifier = (type, name, changed) ->
     if(type in ['eros','gyenge'])
       if(type is 'gyenge')
         return 0
-      if(type is 'eros')
-        difficulty = specialDifficultyModifiers[type]?[name]
+      difficulty = specialDifficultyModifiers[type]?[name]
     else
       difficulty = difficultyModifiers[type]?[name]
     if typeof difficulty is 'string'
-      difficulty = valueProviders[difficulty](changed)
+      difficultyKey = difficulty
+      difficulty = valueProviders[difficultyKey](changed)
+      if isNaN(difficulty)
+        sendError(difficultyKey)
+      else
+        if changed isnt 'ignore'
+          sendValue(difficultyKey, difficulty)
+      difficulty = valueDifficultyCalculator[difficultyKey](difficulty)
     if difficulty? then difficulty else NaN
 
 calculateDifficulty = (modifiers, changed) ->
@@ -166,12 +178,23 @@ getLevelData = (modifiers, extraInfo = []) ->
   res = _(modifiers).reduce ((res, val) -> if val.name in list then _(res).set(val.name, val.value) else res), {}
   res.value()
 
+checkForError = (key, value) ->
+  if isNaN(value)
+    sendError(key)
+  value
+
 calculateSpecialDifficulty = (modifiers) ->
   data = getLevelData(modifiers, ['idotartam'])
   {eros, gyenge, fo} = getPoisonLevelData(data)
   # for key, fn of specialConditions
-  #   console.log key, fn(eros, gyenge, fo, data)
-  _(specialConditions).reduce ((res, fn) -> res + fn(eros, gyenge, fo, data)), 0
+  # console.log key, fn(eros, gyenge, fo, data)
+  _(specialConditions).reduce ((res, fn, key) -> res + checkForError(key, fn(eros, gyenge, fo, data))), 0
+
+errorMessages =
+  overflow : "Az erős hatás szintje nem lehet alacsonyabb a gyenge hatás szintjénél!"
+  idegenOverflow : "Nem létezik elegendően magas szintű, az erős idegen hatásnak megfelelő méreg!"
+  fp_vesztes : "A beírt értéknek számnak kell lennie!"
+  tobb : "A beírt értéknek számnak kell lennie!"
 
 specialConditions = {
   overflow : (eros, gyenge) ->
@@ -190,7 +213,7 @@ specialConditions = {
   ugyanaz : (eros, gyenge, fo, data) ->
     if eros.poisonLevel != gyenge.poisonLevel or eros.effectLevel != gyenge.effectLevel
       return 0
-    difficulty = Math.round(getDifficultyForModifier('eros', eros.effectType)/2)
+    difficulty = Math.round(getDifficultyForModifier('eros', eros.effectType, 'ignore')/2)
     difficulty += 20 if difficulty > 0
     return difficulty
   gyengites : (eros, gyenge) ->
@@ -216,6 +239,12 @@ specialConditions = {
 }
 
 exports = {
+  addErrorProvider : (fn) ->
+    sendError = (key) ->
+      fn(errorMessages[key] or "")
+  addDisplayValueProvider : (fn) ->
+    sendValue = (key, value) ->
+      fn(key, t(key), value)
   addValueProvider : (name, fn) ->
     valueProviders[name] = fn
   init : () ->
