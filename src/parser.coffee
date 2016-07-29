@@ -31,8 +31,8 @@ translate = do ->
     gaz : 'gáz vagy légimérgek'
     kontakt : 'kontaktmérgek'
     tobb : 'több komponensű mérgek'
-    sz2 : '2.', sz3 : '3.', sz4 : '4.', sz5 : '5.', sz6 : '6.', sz7 : '7.'
-    sz8: '8.', sz9: '9.', sz10: '10.', sz11: '11.', sz12: '12.', sz13: '13.'
+    sz0: '0.', sz1: '1.', sz2 : '2.', sz3 : '3.', sz4 : '4.', sz5 : '5.', sz6 : '6.'
+    sz7 : '7.', sz8: '8.', sz9: '9.', sz10: '10.', sz11: '11.', sz12: '12.', sz13: '13.'
     h1: '1 hónap', h2: '2 hónap', h3: '3 hónap', h4: '4 hónap', h5: '5 hónap', h6: '6 hónap'
     egyszeri : 'egyszeri'
     rovid : 'rövid ideig ható méreg'
@@ -54,12 +54,20 @@ translate = do ->
     gyenge : 'gyenge hatás'
     eros : 'erős hatás'
     kn : 'kikeverési nehézség'
+    negative : 'karakter KN értéke'
     van : 'van'
     nincs : 'nincs'
     ar : 'ár (ezüst)'
     beszerzes : 'beszerzés módja'
     vasarlas : 'vásárlás'
     keszites : 'készítés'
+    meregkeveres : 'méregkeverés'
+    herbalizmus : 'herbalizmus'
+    asvanytan : 'ásványtan'
+    elettan : 'élettan'
+    anatomia : 'anatómia'
+    gyakorlat : 'gyakorlat'
+    recept : 'recept'
   }
   (text) ->
     dictionary[text] or text
@@ -76,6 +84,16 @@ difficultyModifiers = {
   egyeb : {nincs: 0, van : 50}
   kulonleges : {nincs: 0, van : 50}
   beszerzes : {vasarlas : 0, keszites: 0}
+}
+
+negativeDifficultyModifiers = {
+  meregkeveres : {sz0: 0,sz1: 50,sz2: 100,sz3: 150,sz4 : 200,sz5: 300}
+  herbalizmus : {sz0: 0,sz1: 5,sz2: 8,sz3: 10,sz4 : 15,sz5: 20}
+  asvanytan : {sz0: 0,sz1: 5,sz2: 8,sz3: 10,sz4 : 15,sz5: 20}
+  elettan : {sz0: 0,sz1: 5,sz2: 8,sz3: 10,sz4 : 15,sz5: 20}
+  anatomia : {sz0: 0,sz1: 5,sz2: 8,sz3: 10,sz4 : 15,sz5: 20}
+  gyakorlat : {nincs: 0, van: 10}
+  recept : {nincs: 0, van: 50}
 }
 
 specialDifficultyModifiers = {
@@ -107,7 +125,7 @@ calculateCost = (modifiers) ->
     poison = costMultipliers[eros.poisonType]
     effectCost = poison.hatas[eros.effectType]
     levelCost = poison.szint[data.szint]
-    durationCost = if data.idotartam is 'maradando' then 3 else 1
+    durationCost = if data.idotartam is 'maradando' then 4 else 1
     creationCost = if data.beszerzes is 'vasarlas' then 2 else 1
     return levelCost * effectCost * durationCost * creationCost
 
@@ -142,7 +160,10 @@ getDifficultyForModifier = (type, name, changed) ->
         return 0
       difficulty = specialDifficultyModifiers[type]?[name]
     else
-      difficulty = difficultyModifiers[type]?[name]
+      if difficultyModifiers[type]?[name]
+        difficulty = difficultyModifiers[type][name]
+      else
+        difficulty = 0
     if typeof difficulty is 'string'
       difficultyKey = difficulty
       difficulty = valueProviders[difficultyKey](changed)
@@ -157,6 +178,12 @@ getDifficultyForModifier = (type, name, changed) ->
 calculateDifficulty = (modifiers, changed) ->
   calculateSpecialDifficulty(modifiers) + _(modifiers)
     .map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed)
+    .reduce (prev, next) -> prev + next
+
+calculateNegativeDifficulty = (modifiers) ->
+  _(modifiers)
+    .filter (modifier) -> negativeDifficultyModifiers[modifier.name]?
+    .map (modifier) -> negativeDifficultyModifiers[modifier.name][modifier.value]
     .reduce (prev, next) -> prev + next
 
 getPosisonLevels = (label, data) ->
@@ -186,8 +213,6 @@ checkForError = (key, value) ->
 calculateSpecialDifficulty = (modifiers) ->
   data = getLevelData(modifiers, ['idotartam'])
   {eros, gyenge, fo} = getPoisonLevelData(data)
-  # for key, fn of specialConditions
-  # console.log key, fn(eros, gyenge, fo, data)
   _(specialConditions).reduce ((res, fn, key) -> res + checkForError(key, fn(eros, gyenge, fo, data))), 0
 
 errorMessages =
@@ -249,10 +274,12 @@ exports = {
     valueProviders[name] = fn
   init : () ->
   difficultyModifiers : difficultyModifiers
+  negativeDifficultyModifiers : negativeDifficultyModifiers
   costMultipliers : costMultipliers
   translate : translate
   specialDifficultyModifiers : specialDifficultyModifiers
   calculateDifficulty : calculateDifficulty
+  calculateNegativeDifficulty : calculateNegativeDifficulty
   calculateCost : calculateCost
   t : t
 }
