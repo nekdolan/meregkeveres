@@ -6,6 +6,9 @@
     <title>MAGUS Méregkeverés</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <style>
+        legend {
+            border-width: 0px;
+        }
         #values_container_field:empty, #error_container_field:empty {
             display: none;
         }
@@ -18,6 +21,8 @@
         <span id="cost_container_field"></span>
         <span id="kn_container_field"></span>
         <span id="negative_kn_container_field"></span>
+        <span id="alchemy_result_container_field"></span>
+        <span id="difference_container_field"></span>
       </legend>
       <form class="form-horizontal" id="form_data" action="index.html" method="post">
         <div class="row">
@@ -25,12 +30,15 @@
           <div class="col-sm-12 col-md-7">
               <div id="secondary_container_field"></div>
               <div id="values_container_field" class="alert alert-info"></div>
-              <legend>Karakter</legend>
-              <div class="col-sm-12 col-md-11" id="negative_value_container_filed"></div>
+              <div class="col-sm-12 col-md-6">
+                  <legend>Karakter</legend>
+                  <div id="negative_value_container_filed"></div>
+                  <div id="alchemy_container_filed"></div>
+              </div>
           </div>
         </div>
       </form>
-        <hr class="hidden-sm"/>
+        <div class="clear">&nbsp;</div>
       <div class="row">
           <div class="col-xs-12">
             <div id="error_container_field" class="alert alert-danger"></div>
