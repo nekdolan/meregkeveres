@@ -15,6 +15,7 @@ $form = $('#form_data')
 $negative = $('#negative_value_container_filed')
 $difficultydiff = $('#difference_container_field')
 $alchemy = $('#alchemy_container_filed')
+$alchemyResult = $('#alchemy_result_container_field')
 
 errorProvider = (errorMessage) ->
   $error.html("Hiba: <span>#{errorMessage}</span>" )
@@ -94,8 +95,19 @@ renderNegativeDifficulty = () ->
   $negativekn.html(renderSimpleValue('negative',cost))
   cost
 
-renderSuccess = (difficulty, negativeDifficulty) ->
-  if negativeDifficulty - difficulty > 0
+renderAlchemyResult = (alchemyValue) ->
+  alchemyValue = getAlchemyValue()
+  if alchemyValue is true
+    diff = 'megfelelő'
+    type = 'success'
+  else
+    diff = 'elégtelen'
+    type = 'danger'
+  $alchemyResult.html(renderSimpleValue('felszerelés', diff, type))
+  alchemyValue
+  
+renderSuccess = (difficulty, negativeDifficulty, alchemyValue) ->
+  if (negativeDifficulty - difficulty > 0) && (alchemyValue is true)
     diff = 'igen'
     type = 'success'
   else
@@ -103,6 +115,12 @@ renderSuccess = (difficulty, negativeDifficulty) ->
     type = 'danger'
   $difficultydiff.html(renderSimpleValue('kikeverhető',diff, type))
   diff
+
+getAlchemyValue = () ->
+  alchemyLevel = $('#id_alkimia').val()
+  supplyType = $('#id_felszereles').val()
+  poisonType = $('#id_fajta').val()
+  testAlchemy(supplyType, poisonType, alchemyLevel)
 
 getFormData = (attr) ->
   data = $form.serializeArray();
@@ -118,7 +136,8 @@ init = () ->
   renderAllSpecialModifiers()
   difficulty = renderDifficulty()
   negativeDifficulty = renderNegativeDifficulty()
-  renderSuccess(difficulty, negativeDifficulty)
+  alchemy = renderAlchemyResult()
+  renderSuccess(difficulty, negativeDifficulty, alchemy)
   renderCost()
   clearErrorMessage()
   clearDisplayValues()
@@ -132,6 +151,7 @@ init = () ->
     renderCost()
     difficulty = renderDifficulty(event.target)
     negativeDifficulty = renderNegativeDifficulty()
-    renderSuccess(difficulty, negativeDifficulty)
+    alchemy = renderAlchemyResult()
+    renderSuccess(difficulty, negativeDifficulty, alchemy)
 
 init()

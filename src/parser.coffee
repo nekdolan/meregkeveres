@@ -76,6 +76,7 @@ translate = do ->
     alap : 'alap'
     bovitett : 'bővített'
     laboratorium : 'laboratórium'
+    felszereles : 'felszerelés'
   }
   (text) ->
     dictionary[text] or text
@@ -107,16 +108,18 @@ alchemyModifiers = {
 }
 
 alchemy = {
-#    supplies: {alkalmi: 1,alap: 2,bovitett: 3,laboratorium: 4}
     poison: {etel : 2, fegyver : 3, gaz : 4, kontakt : 6, tobb: 2}
-    levels: {
+    levels: { 
+      nincs : [0]
       af: [1,2,2,3,3,4]
       mf: [1,1,2,2,3,3,3,4]
     }
 }
 
-testAlchemyLevel = (supplyLevel, poisonType, alchemyLevel) ->
+testAlchemy = (supplyType, poisonType, alchemyLevel) ->
+  supplyLevel = alchemyModifiers.felszereles[supplyType]
   availableAlchemyLevel = alchemy.levels[alchemyLevel].lastIndexOf(supplyLevel)
+  console.log availableAlchemyLevel, alchemy.poison[poisonType]
   availableAlchemyLevel >= alchemy.poison[poisonType]
 
 specialDifficultyModifiers = {
@@ -305,7 +308,7 @@ exports = {
   calculateNegativeDifficulty : calculateNegativeDifficulty
   calculateCost : calculateCost
   alchemyModifiers : alchemyModifiers
-  testAlchemyLevel : testAlchemyLevel
+  testAlchemy : testAlchemy
   t : t
 }
 
