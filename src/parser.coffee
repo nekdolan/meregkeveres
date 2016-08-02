@@ -68,6 +68,14 @@ translate = do ->
     anatomia : 'anatómia'
     gyakorlat : 'gyakorlat'
     recept : 'recept'
+    kikeheverto : 'kikeverhető'
+    af : 'alapfok'
+    mf : 'mesterfok'
+    alkimia : 'alkímia'
+    alkalmi : 'alkalmi'
+    alap : 'alap'
+    bovitett : 'bővített'
+    laboratorium : 'laboratórium'
   }
   (text) ->
     dictionary[text] or text
@@ -87,14 +95,29 @@ difficultyModifiers = {
 }
 
 negativeDifficultyModifiers = {
-  meregkeveres : {sz0: 0,sz1: 50,sz2: 100,sz3: 150,sz4 : 200,sz5: 300}
-  herbalizmus : {sz0: 0,sz1: 5,sz2: 8,sz3: 10,sz4 : 15,sz5: 20}
-  asvanytan : {sz0: 0,sz1: 5,sz2: 8,sz3: 10,sz4 : 15,sz5: 20}
-  elettan : {sz0: 0,sz1: 5,sz2: 8,sz3: 10,sz4 : 15,sz5: 20}
-  anatomia : {sz0: 0,sz1: 5,sz2: 8,sz3: 10,sz4 : 15,sz5: 20}
-  gyakorlat : {nincs: 0, van: 10}
+  meregkeveres : {nincs: 0, af: 100, mf : 200}
+  herbalizmus : {nincs: 0, af: 8, mf : 15}
+  elettan : {nincs: 0, af: 8, mf : 15}
   recept : {nincs: 0, van: 50}
 }
+
+alchemyModifiers = {
+  alkimia : {nincs: 0, af: 'af', mf : 'mf'}
+  felszereles : {alkalmi: 1,alap: 2,bovitett: 3,laboratorium: 4}
+}
+
+alchemy = {
+#    supplies: {alkalmi: 1,alap: 2,bovitett: 3,laboratorium: 4}
+    poison: {etel : 2, fegyver : 3, gaz : 4, kontakt : 6, tobb: 2}
+    levels: {
+      af: [1,2,2,3,3,4]
+      mf: [1,1,2,2,3,3,3,4]
+    }
+}
+
+testAlchemyLevel = (supplyLevel, poisonType, alchemyLevel) ->
+  availableAlchemyLevel = alchemy.levels[alchemyLevel].lastIndexOf(supplyLevel)
+  availableAlchemyLevel >= alchemy.poison[poisonType]
 
 specialDifficultyModifiers = {
   eros : {semmi : 0, fp_vesztes: 'fp_vesztes', benultsag: 70, ajulas: 80, alvas: 80, halal: 100, kabultsag: 40, gorcs: 20, gyengeseg: 20, rosszullet: 30, emelyges: 10, bodulat: 40}
@@ -281,6 +304,8 @@ exports = {
   calculateDifficulty : calculateDifficulty
   calculateNegativeDifficulty : calculateNegativeDifficulty
   calculateCost : calculateCost
+  alchemyModifiers : alchemyModifiers
+  testAlchemyLevel : testAlchemyLevel
   t : t
 }
 

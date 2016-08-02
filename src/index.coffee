@@ -1,7 +1,8 @@
 # coffee --compile --output lib src
 
 { t, addErrorProvider, addValueProvider, difficultyModifiers, specialDifficultyModifiers, negativeDifficultyModifiers
-  costMultipliers, calculateDifficulty, calculateCost, addDisplayValueProvider, calculateNegativeDifficulty} = parser
+  costMultipliers, calculateDifficulty, calculateCost, addDisplayValueProvider, calculateNegativeDifficulty,
+alchemyModifiers, testAlchemy} = parser
 
 $main = $('#main_container_field')
 $secondary = $('#secondary_container_field')
@@ -12,7 +13,8 @@ $error = $('#error_container_field')
 $values = $('#values_container_field')
 $form = $('#form_data')
 $negative = $('#negative_value_container_filed')
-
+$difficultydiff = $('#difference_container_field')
+$alchemy = $('#alchemy_container_filed')
 
 errorProvider = (errorMessage) ->
   $error.html("Hiba: <span>#{errorMessage}</span>" )
@@ -45,9 +47,7 @@ getHtmlDifficultyModifier = (type, names) ->
 
 renderModifiers = () -> renderListData($main, difficultyModifiers)
 renderNegativeModifiers = () -> renderListData($negative, negativeDifficultyModifiers)
-#  content = _(difficultyModifiers)
-#    .reduce ((res, modifiers, name) -> "#{res}\n#{getHtmlDifficultyModifier(name, modifiers)}"), ''
-#  $main.html(content)
+renderAlchemyModifiers = () -> renderListData($alchemy, alchemyModifiers)
 
 renderListData = ($target, list) ->
   content = _(list)
@@ -75,21 +75,34 @@ renderAllSpecialModifiers = () ->
     .reduce ((res, type) -> "#{res}<div class='form-group' id='#{type}'><label class='col-sm-2 control-label'>#{t(type)}</label> <div class='col-sm-10'>#{renderSpecialModifier(type)}</div></div>"), ''
   $secondary.html(content)
 
-renderSimpleValue = (labelKey, value) ->
-  "<span>#{t(labelKey)}: <span class='label label-info'>#{value}</span></span>"
+renderSimpleValue = (labelKey, value, type='info') ->
+  "<span>#{t(labelKey)}: <span class='label label-#{type}'>#{value}</span></span>"
 
 renderCost = () ->
   cost = calculateCost(getFormData())
   $cost.html(renderSimpleValue('ar',cost))
+  cost
 
 renderDifficulty = (item) ->
   difficulty = calculateDifficulty(getFormData(), $(item).prop('name'))
   value = if difficulty then difficulty else 'Hiba!'
   $kn.html(renderSimpleValue('kn',value))
+  value
 
-renderNegativeCost = () ->
+renderNegativeDifficulty = () ->
   cost = calculateNegativeDifficulty(getFormData())
   $negativekn.html(renderSimpleValue('negative',cost))
+  cost
+
+renderSuccess = (difficulty, negativeDifficulty) ->
+  if negativeDifficulty - difficulty > 0
+    diff = 'igen'
+    type = 'success'
+  else
+    diff = 'nem'
+    type = 'danger'
+  $difficultydiff.html(renderSimpleValue('kikeverhető',diff, type))
+  diff
 
 getFormData = (attr) ->
   data = $form.serializeArray();
@@ -101,10 +114,12 @@ exportData = () ->
 init = () ->
   renderModifiers()
   renderNegativeModifiers()
+  renderAlchemyModifiers()
   renderAllSpecialModifiers()
-  renderDifficulty()
+  difficulty = renderDifficulty()
+  negativeDifficulty = renderNegativeDifficulty()
+  renderSuccess(difficulty, negativeDifficulty)
   renderCost()
-  renderNegativeCost()
   clearErrorMessage()
   clearDisplayValues()
   $('form').on 'change', '#id_tipus_fo', (event) ->
@@ -114,8 +129,9 @@ init = () ->
   $('form').on 'change', 'select, input', (event) ->
     clearDisplayValues()
     clearErrorMessage()
-    renderDifficulty(event.target)
     renderCost()
-    renderNegativeCost()
+    difficulty = renderDifficulty(event.target)
+    negativeDifficulty = renderNegativeDifficulty()
+    renderSuccess(difficulty, negativeDifficulty)
 
 init()
