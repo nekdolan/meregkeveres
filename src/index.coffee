@@ -85,7 +85,7 @@ renderCost = () ->
   cost
 
 renderDifficulty = (item) ->
-  difficulty = calculateDifficulty(getFormData(), $(item).prop('name'))
+  difficulty = calculateDifficulty(getFormData(), $(item).prop('name'), $('#id_meregkeveres').val())
   value = if difficulty then difficulty else 'Hiba!'
   $kn.html(renderSimpleValue('kn',value))
   value
@@ -103,7 +103,7 @@ renderAlchemyResult = (alchemyValue) ->
   else
     diff = 'elégtelen'
     type = 'danger'
-  $alchemyResult.html(renderSimpleValue('felszerelés', diff, type))
+  $alchemyResult.html(renderSimpleValue('alkímia felszerelés', diff, type))
   alchemyValue
   
 renderSuccess = (difficulty, negativeDifficulty, alchemyValue) ->

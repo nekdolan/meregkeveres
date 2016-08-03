@@ -116,10 +116,31 @@ alchemy = {
     }
 }
 
+#
+#skillFailTestModifiers = {
+#  szint : ['sz6','sz7','sz8','sz9','sz10','sz11','sz12','sz13']
+#  fajta : ['kontakt','tobb']
+#}
+
+calculateSkillModifiers = (modifiers) ->
+  meregkeveres = getModifierValue(modifiers, 'meregkeveres')
+  if meregkeveres isnt 'mf'
+    fajta = getModifierValue(modifiers, 'fajta')
+    szint = getModifierValue(modifiers, 'szint')
+    if fajta in ['gaz','kontakt','tobb']
+      if meregkeveres is 'af'
+        sendError('fajta_error')
+      return NaN
+    if szint in ['sz6', 'sz7', 'sz8', 'sz9', 'sz10', 'sz11', 'sz12', 'sz13']
+      if meregkeveres is 'af'
+        sendError('szint_error')
+      return NaN
+
+  return 0
+
 testAlchemy = (supplyType, poisonType, alchemyLevel) ->
   supplyLevel = alchemyModifiers.felszereles[supplyType]
   availableAlchemyLevel = alchemy.levels[alchemyLevel].lastIndexOf(supplyLevel)
-  console.log availableAlchemyLevel, alchemy.poison[poisonType]
   availableAlchemyLevel >= alchemy.poison[poisonType]
 
 specialDifficultyModifiers = {
@@ -180,7 +201,7 @@ cacheOverride = (name, fn) ->
 for key, provider of valueProviders
   valueProviders[key] = cacheOverride(key, provider)
 
-getDifficultyForModifier = (type, name, changed) ->
+getDifficultyForModifier = (type, name, changed, charLevel) ->
     if(type in ['eros','gyenge'])
       if(type is 'gyenge')
         return 0
@@ -198,13 +219,19 @@ getDifficultyForModifier = (type, name, changed) ->
       else
         if changed isnt 'ignore'
           sendValue(difficultyKey, difficulty)
+          if charLevel isnt 'mf' and difficulty > 15
+            sendError('fp_overflow')
+            return NaN
       difficulty = valueDifficultyCalculator[difficultyKey](difficulty)
     if difficulty? then difficulty else NaN
 
-calculateDifficulty = (modifiers, changed) ->
-  calculateSpecialDifficulty(modifiers) + _(modifiers)
-    .map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed)
+calculateDifficulty = (modifiers, changed, charLevel) ->
+  calculateSkillModifiers(modifiers) + calculateSpecialDifficulty(modifiers) + _(modifiers)
+    .map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed, charLevel)
     .reduce (prev, next) -> prev + next
+
+getModifierValue = (modifiers, attr) ->
+  (_(modifiers).find (modifier) -> modifier.name is attr).value
 
 calculateNegativeDifficulty = (modifiers) ->
   _(modifiers)
@@ -242,14 +269,22 @@ calculateSpecialDifficulty = (modifiers) ->
   _(specialConditions).reduce ((res, fn, key) -> res + checkForError(key, fn(eros, gyenge, fo, data))), 0
 
 errorMessages =
-  overflow : "Az erős hatás szintje nem lehet alacsonyabb a gyenge hatás szintjénél!"
+  overflow : "Az erős hatás szintje nem lehet alacsonyabb vagy egyenlő a gyenge hatás szintjénél!"
   idegenOverflow : "Nem létezik elegendően magas szintű, az erős idegen hatásnak megfelelő méreg!"
+  noIdenticalEffect : "Két hatás nem lehet azonos!"
   fp_vesztes : "A beírt értéknek számnak kell lennie!"
+  fp_overflow : 'Az fp vesztés nem lehet 15-nél nagyobb ha nincs méregkeverés mf-je a kalandozónak'
   tobb : "A beírt értéknek számnak kell lennie!"
+  fajta_error : "Ezt a típust csak mesterfokú méregkeverés képzettséggel lehet kikeverni!"
+  szint_error : "Ilyen szintű mérget csak mesterfokú méregkeverés képzettséggel lehet kikeverni!"
 
 specialConditions = {
   overflow : (eros, gyenge) ->
-    if eros.effectLevel < gyenge.effectLevel
+    if eros.effectLevel < gyenge.effectLevel and gyenge.effectLevel isnt 0
+      return NaN
+    return 0
+  noIdenticalEffect : (eros, gyenge) ->
+    if eros.effectType is gyenge.effectType and eros.effectLevel isnt 0 and eros.effectType isnt 'fp_vesztes'
       return NaN
     return 0
   idegenOverflow : (eros, gyenge, fo) ->
