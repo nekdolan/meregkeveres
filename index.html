@@ -1,46 +1,66 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MAGUS Méregkeverés</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <style>
+        legend {
+            border-width: 0px;
+        }
         #values_container_field:empty, #error_container_field:empty {
             display: none;
         }
     </style>
-  </head>
-  <body>
-    <div id="main-body" class="container">
-      <h2>Méregkeverés Kalkulátor</h2>
-      <legend id="results">
+</head>
+<body>
+<div id="main-body" class="container">
+    <h2>
+        Méregkeverés Kalkulátor
+        <a id="export" class="pull-right btn btn-default" href="#" role="button">Exportálás</a>
+    </h2>
+    <legend id="results">
         <span id="cost_container_field"></span>
         <span id="kn_container_field"></span>
         <span id="negative_kn_container_field"></span>
-      </legend>
-      <form class="form-horizontal" id="form_data" action="index.html" method="post">
-        <div class="row">
-          <div class="col-sm-12 col-md-5" id="main_container_field"></div>
-          <div class="col-sm-12 col-md-7">
-              <div id="secondary_container_field"></div>
-              <div id="values_container_field" class="alert alert-info"></div>
-              <legend>Karakter</legend>
-              <div class="col-sm-12 col-md-11" id="negative_value_container_filed"></div>
-          </div>
-        </div>
-      </form>
-        <hr class="hidden-sm"/>
-      <div class="row">
-          <div class="col-xs-12">
+        <span id="alchemy_result_container_field"></span>
+        <span id="difference_container_field"></span>
+    </legend>
+    <div class="row">
+        <div class="col-xs-12">
             <div id="error_container_field" class="alert alert-danger"></div>
-          </div>
-      </div>
+        </div>
     </div>
-    <script src="js/jquery-2.2.4.min.js" type="text/javascript"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/lodash.min.js" type="text/javascript"></script>
-    <script src="lib/parser.js" type="text/javascript"></script>
-    <script src="lib/index.js" type="text/javascript"></script>
-  </body>
+    <form class="form-horizontal" id="form_data" action="index.html" method="post">
+        <div class="row">
+            <div class="col-sm-12 col-md-5" id="main_container_field"></div>
+            <div class="col-sm-12 col-md-7">
+                <div id="secondary_container_field"></div>
+                <div class="col-sm-12 col-md-6">
+                    <legend>Karakter</legend>
+                    <div id="negative_value_container_filed"></div>
+                    <legend>Alkímia és felszerelés</legend>
+                    <div id="alchemy_container_filed"></div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <legend></legend>
+                    <div id="values_container_field" class="alert alert-info"></div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script src="js/jquery-2.2.4.min.js" type="text/javascript"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/lodash.min.js" type="text/javascript"></script>
+
+<script src="js/xlsx.core.min.js" type="text/javascript"></script>
+<script src="js/blob.js" type="text/javascript"></script>
+<script src="js/filesaver.js" type="text/javascript"></script>
+<script src="js/save-data.js" type="text/javascript"></script>
+
+<script src="lib/parser.js" type="text/javascript"></script>
+<script src="lib/index.js" type="text/javascript"></script>
+</body>
 </html>
