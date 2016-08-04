@@ -16,7 +16,10 @@
 </head>
 <body>
 <div id="main-body" class="container">
-    <h2>Méregkeverés Kalkulátor</h2>
+    <h2>
+        Méregkeverés Kalkulátor
+        <a id="export" class="pull-right btn btn-default" href="#" role="button">Exportálás</a>
+    </h2>
     <legend id="results">
         <span id="cost_container_field"></span>
         <span id="kn_container_field"></span>
@@ -51,6 +54,12 @@
 <script src="js/jquery-2.2.4.min.js" type="text/javascript"></script>
 <script src="js/bootstrap.min.js"></script>
 <script src="js/lodash.min.js" type="text/javascript"></script>
+
+<script src="js/xlsx.core.min.js" type="text/javascript"></script>
+<script src="js/blob.js" type="text/javascript"></script>
+<script src="js/filesaver.js" type="text/javascript"></script>
+<script src="js/save-data.js" type="text/javascript"></script>
+
 <script src="lib/parser.js" type="text/javascript"></script>
 <script src="lib/index.js" type="text/javascript"></script>
 </body>

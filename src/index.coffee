@@ -16,6 +16,9 @@ $negative = $('#negative_value_container_filed')
 $difficultydiff = $('#difference_container_field')
 $alchemy = $('#alchemy_container_filed')
 $alchemyResult = $('#alchemy_result_container_field')
+$export = $('#export')
+
+extraValues = []
 
 errorProvider = (errorMessage) ->
   $error.html("Hiba: <span>#{errorMessage}</span>" )
@@ -24,6 +27,7 @@ getNumber = (label) ->
    prompt("Írj be egy számot (#{label})!", 0)
 
 displayValueProvider = (key, label, value) ->
+  extraValues.push [label, value]
   $values.append("<div>#{label} : <strong>#{value}</strong></div>")
 
 addValueProvider('getNumber', getNumber)
@@ -33,6 +37,7 @@ addDisplayValueProvider(displayValueProvider)
 parser.init()
 
 clearDisplayValues = () ->
+  extraValues = []
   $values.html('')
 
 clearErrorMessage = () ->
@@ -85,10 +90,20 @@ renderCost = () ->
   cost
 
 renderDifficulty = (item) ->
-  difficulty = calculateDifficulty(getFormData(), $(item).prop('name'), $('#id_meregkeveres').val())
-  value = if difficulty then difficulty else 'Hiba!'
-  $kn.html(renderSimpleValue('kn',value))
-  value
+  formData = getFormData()
+  negativeDifficulty = calculateNegativeDifficulty(formData)
+  difficulty = calculateDifficulty(formData, $(item).prop('name'), $('#id_meregkeveres').val())
+  success = difficulty <= negativeDifficulty
+  if success is true
+    knValue = 'elegendő'
+    type = 'success'
+  else
+    type = 'danger'
+    knValue = 'sok'
+  knValue = "#{knValue} #{difficulty}/#{negativeDifficulty}"
+  knValue = if difficulty then knValue else 'Hiba!'
+  $kn.html(renderSimpleValue('kn',knValue, type))
+  success
 
 renderNegativeDifficulty = () ->
   cost = calculateNegativeDifficulty(getFormData())
@@ -97,24 +112,25 @@ renderNegativeDifficulty = () ->
 
 renderAlchemyResult = (alchemyValue) ->
   alchemyValue = getAlchemyValue()
-  if alchemyValue is true
+  if alchemyValue.test is true
     diff = 'megfelelő'
     type = 'success'
   else
     diff = 'elégtelen'
     type = 'danger'
+  diff = "#{diff} #{alchemyValue.availableAlchemyLevel}/#{alchemyValue.neededAlchemyLevel}"
   $alchemyResult.html(renderSimpleValue('alkímia felszerelés', diff, type))
-  alchemyValue
+  alchemyValue.test
   
-renderSuccess = (difficulty, negativeDifficulty, alchemyValue) ->
-  if (negativeDifficulty - difficulty > 0) && (alchemyValue is true)
+renderSuccess = (difficultySuccess, alchemyValue) ->
+  if (difficultySuccess is true) && (alchemyValue is true)
     diff = 'igen'
     type = 'success'
   else
     diff = 'nem'
     type = 'danger'
   $difficultydiff.html(renderSimpleValue('kikeverhető',diff, type))
-  diff
+  diff is 'igen'
 
 getAlchemyValue = () ->
   alchemyLevel = $('#id_alkimia').val()
@@ -127,20 +143,46 @@ getFormData = (attr) ->
   if !attr then return data
   _(data).find({name : attr})?.value
 
-exportData = () ->
+exportData = (event) ->
+  clearDisplayValues()
+  formData = getFormData()
+  difficulty = calculateDifficulty(formData, null, $('#id_meregkeveres').val())
+  negativeDifficulty = calculateNegativeDifficulty(formData)
+  alchemy = getAlchemyValue()
+  success =  difficulty <= negativeDifficulty and alchemy.test
+  cost = calculateCost(formData)
+
+  if success is false
+    errorProvider('A mérget nem lehet kikeverni, ezért az nem exportálható!')
+    return
+
+  name = prompt('Írj be egy fájlnevet a méregnek!', "mereg_#{(new Date()*1)}")
+  if !name then return
+
+  results = [
+    ['Név', name]
+    ['Kikeverési nehézség', difficulty]
+    ['Karakter KN értéke', negativeDifficulty]
+    ['Alkímia szint', alchemy.availableAlchemyLevel]
+    ['Szükséges alkímia szint', alchemy.neededAlchemyLevel]
+    ['A méreg ára', "#{cost} ezüst"]
+  ]
+  data = _.map formData, (row) -> [t(row.name), t(row.value)]
+  data = _.concat(results, data, extraValues)
+  saveData(name, 'mereg', data)
 
 init = () ->
   renderModifiers()
   renderNegativeModifiers()
   renderAlchemyModifiers()
   renderAllSpecialModifiers()
-  difficulty = renderDifficulty()
-  negativeDifficulty = renderNegativeDifficulty()
+  difficultySuccess = renderDifficulty()
   alchemy = renderAlchemyResult()
-  renderSuccess(difficulty, negativeDifficulty, alchemy)
+  renderSuccess(difficultySuccess, alchemy)
   renderCost()
   clearErrorMessage()
   clearDisplayValues()
+  $export.click exportData
   $('form').on 'change', '#id_tipus_fo', (event) ->
     $('#id_tipus_eros, #id_tipus_gyenge').val($(event.target).val())
   $('form').on 'change', 'select[name^="tipus"]', () ->
@@ -149,9 +191,8 @@ init = () ->
     clearDisplayValues()
     clearErrorMessage()
     renderCost()
-    difficulty = renderDifficulty(event.target)
-    negativeDifficulty = renderNegativeDifficulty()
+    difficultySuccess = renderDifficulty(event.target)
     alchemy = renderAlchemyResult()
-    renderSuccess(difficulty, negativeDifficulty, alchemy)
+    renderSuccess(difficultySuccess, alchemy)
 
 init()
