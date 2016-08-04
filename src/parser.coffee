@@ -116,6 +116,16 @@ alchemy = {
     }
 }
 
+testAlchemy = (supplyType, poisonType, alchemyLevel) ->
+  supplyLevel = alchemyModifiers.felszereles[supplyType]
+  availableAlchemyLevel = alchemy.levels[alchemyLevel].lastIndexOf(supplyLevel)+1
+  neededAlchemyLevel = alchemy.poison[poisonType]
+  {
+    test : availableAlchemyLevel >= neededAlchemyLevel
+    availableAlchemyLevel
+    neededAlchemyLevel
+  }
+
 calculateSkillModifiers = (modifiers) ->
   meregkeveres = getModifierValue(modifiers, 'meregkeveres')
   if meregkeveres isnt 'mf'
@@ -130,17 +140,6 @@ calculateSkillModifiers = (modifiers) ->
         sendError('szint_error')
       return NaN
   return 0
-
-testAlchemy = (supplyType, poisonType, alchemyLevel) ->
-  supplyLevel = alchemyModifiers.felszereles[supplyType]
-  availableAlchemyLevel = alchemy.levels[alchemyLevel].lastIndexOf(supplyLevel)
-  if availableAlchemyLevel is -1 then availableAlchemyLevel = 0
-  neededAlchemyLevel = alchemy.poison[poisonType]
-  {
-    test : availableAlchemyLevel >= neededAlchemyLevel
-    availableAlchemyLevel
-    neededAlchemyLevel
-  }
 
 specialDifficultyModifiers = {
   eros : {semmi : 0, fp_vesztes: 'fp_vesztes', benultsag: 70, ajulas: 80, alvas: 80, halal: 100, kabultsag: 40, gorcs: 20, gyengeseg: 20, rosszullet: 30, emelyges: 10, bodulat: 40}
