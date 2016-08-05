@@ -100,25 +100,25 @@ renderDifficulty = (item) ->
   else
     type = 'danger'
     knValue = 'sok'
-  knValue = "#{knValue} #{difficulty}/#{negativeDifficulty}"
+  knValue = "#{knValue} #{difficulty} ≤ #{negativeDifficulty}"
   knValue = if difficulty then knValue else 'Hiba!'
   $kn.html(renderSimpleValue('kn',knValue, type))
-  success
+  {success, difficulty}
 
 renderNegativeDifficulty = () ->
   cost = calculateNegativeDifficulty(getFormData())
   $negativekn.html(renderSimpleValue('negative',cost))
   cost
 
-renderAlchemyResult = (alchemyValue) ->
-  alchemyValue = getAlchemyValue()
+renderAlchemyResult = (difficulty) ->
+  alchemyValue = getAlchemyValue(difficulty)
   if alchemyValue.test is true
     diff = 'megfelelő'
     type = 'success'
   else
     diff = 'elégtelen'
     type = 'danger'
-  diff = "#{diff} #{alchemyValue.availableAlchemyLevel}/#{alchemyValue.neededAlchemyLevel}"
+  diff = "#{diff} #{alchemyValue.neededAlchemyLevel} ≤ #{alchemyValue.availableAlchemyLevel}"
   $alchemyResult.html(renderSimpleValue('alkímia felszerelés', diff, type))
   alchemyValue.test
   
@@ -132,11 +132,11 @@ renderSuccess = (difficultySuccess, alchemyValue) ->
   $difficultydiff.html(renderSimpleValue('kikeverhető',diff, type))
   diff is 'igen'
 
-getAlchemyValue = () ->
+getAlchemyValue = (difficulty) ->
   alchemyLevel = $('#id_alkimia').val()
   supplyType = $('#id_felszereles').val()
-  poisonType = $('#id_fajta').val()
-  testAlchemy(supplyType, poisonType, alchemyLevel)
+
+  testAlchemy(supplyType, difficulty, alchemyLevel)
 
 getFormData = (attr) ->
   data = $form.serializeArray();
@@ -148,7 +148,7 @@ exportData = (event) ->
   formData = getFormData()
   difficulty = calculateDifficulty(formData, null, $('#id_meregkeveres').val())
   negativeDifficulty = calculateNegativeDifficulty(formData)
-  alchemy = getAlchemyValue()
+  alchemy = getAlchemyValue(difficulty)
   success =  difficulty <= negativeDifficulty and alchemy.test
   cost = calculateCost(formData)
 
@@ -176,9 +176,9 @@ init = () ->
   renderNegativeModifiers()
   renderAlchemyModifiers()
   renderAllSpecialModifiers()
-  difficultySuccess = renderDifficulty()
-  alchemy = renderAlchemyResult()
-  renderSuccess(difficultySuccess, alchemy)
+  difficulty = renderDifficulty()
+  alchemy = renderAlchemyResult(difficulty.difficulty)
+  renderSuccess(difficulty.success, alchemy)
   renderCost()
   clearErrorMessage()
   clearDisplayValues()
@@ -191,8 +191,8 @@ init = () ->
     clearDisplayValues()
     clearErrorMessage()
     renderCost()
-    difficultySuccess = renderDifficulty(event.target)
-    alchemy = renderAlchemyResult()
-    renderSuccess(difficultySuccess, alchemy)
+    difficulty = renderDifficulty(event.target)
+    alchemy = renderAlchemyResult(difficulty.difficulty)
+    renderSuccess(difficulty.success, alchemy)
 
 init()

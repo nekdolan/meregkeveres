@@ -108,18 +108,18 @@ alchemyModifiers = {
 }
 
 alchemy = {
-    poison: {etel : 2, fegyver : 3, gaz : 4, kontakt : 6, tobb: 2}
+    poisonDifficulty : [0, 100, 140, 180, 220, 260, 300, 340]
     levels: { 
-      nincs : [0]
+      nincs : [1,2,3,4]
       af: [1,2,2,3,3,4]
       mf: [1,1,2,2,3,3,3,4]
     }
 }
 
-testAlchemy = (supplyType, poisonType, alchemyLevel) ->
+testAlchemy = (supplyType, difficulty, alchemyLevel) ->
   supplyLevel = alchemyModifiers.felszereles[supplyType]
   availableAlchemyLevel = alchemy.levels[alchemyLevel].lastIndexOf(supplyLevel)+1
-  neededAlchemyLevel = alchemy.poison[poisonType]
+  neededAlchemyLevel = _.findIndex alchemy.poisonDifficulty, (num) -> num > (difficulty or 0)
   {
     test : availableAlchemyLevel >= neededAlchemyLevel
     availableAlchemyLevel
@@ -189,6 +189,7 @@ cacheOverride = (name, fn) ->
    cacheKey = ''
    (changed) ->
      key = "#{name}_#{changed}"
+     console.log key
      if (key is cacheKey) or (cache is null)
        cache = fn.call(@)
        cacheKey = key
@@ -210,6 +211,7 @@ getDifficultyForModifier = (type, name, changed, charLevel) ->
       else
         difficulty = 0
     if typeof difficulty is 'string'
+#      console.log changed
       difficultyKey = difficulty
       difficulty = valueProviders[difficultyKey](changed)
       if isNaN(difficulty)
