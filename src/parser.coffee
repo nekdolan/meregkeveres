@@ -77,6 +77,7 @@ translate = do ->
     bovitett : 'bővített'
     laboratorium : 'laboratórium'
     felszereles : 'felszerelés'
+    k3 : 'k6/2', k5 : 'k10/2', k6: 'k6', k10 : 'k10'
   }
   (text) ->
     dictionary[text] or text
@@ -105,6 +106,38 @@ negativeDifficultyModifiers = {
 alchemyModifiers = {
   alkimia : {nincs: 0, af: 'af', mf : 'mf'}
   felszereles : {alkalmi: 1,alap: 2,bovitett: 3,laboratorium: 4}
+}
+
+getHiddenModifierValues = (modifiers, hiddenModifier) ->
+  _.reduce hiddenModifier.inputs, ((res, val, key) -> res[key] = getModifierValue(modifiers, key)), {}
+
+hiddenModifiers = {
+  fp_vesztes_eros : {
+    inputs : {
+      dice : {k6 : 6, k10 : 10}
+      amount : 1
+    }
+    calculate : (modifiers) ->
+      values = getHiddenModifierValues(modifiers, hiddenModifiers)
+      "#{values.dice} * #{values.amount}"
+  }
+  fp_vesztes_gyenge : {
+    inputs : {
+      dice : {k3: 3, k5 : 5, k6 : 6, k10: 10}
+      amount : 1
+    }
+    calculate : (modifiers) ->
+      values = getHiddenModifierValues(modifiers, hiddenModifiers)
+      {
+        value : values.dice * values.amount
+        text : "#{values.dice} * #{values.amount}"
+      }
+  }
+#  tobb : {
+#    inputs : {
+#      amount : 2
+#    }
+#  }
 }
 
 alchemy = {
@@ -344,6 +377,7 @@ exports = {
   calculateCost : calculateCost
   alchemyModifiers : alchemyModifiers
   testAlchemy : testAlchemy
+  hiddenModifiers : hiddenModifiers
   t : t
 }
 

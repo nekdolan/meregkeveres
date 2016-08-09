@@ -2,7 +2,7 @@
 
 { t, addErrorProvider, addValueProvider, difficultyModifiers, specialDifficultyModifiers, negativeDifficultyModifiers
   costMultipliers, calculateDifficulty, calculateCost, addDisplayValueProvider, calculateNegativeDifficulty,
-alchemyModifiers, testAlchemy} = parser
+alchemyModifiers, testAlchemy, hiddenModifiers} = parser
 
 $main = $('#main_container_field')
 $secondary = $('#secondary_container_field')
@@ -18,8 +18,6 @@ $alchemy = $('#alchemy_container_filed')
 $alchemyResult = $('#alchemy_result_container_field')
 $export = $('#export')
 
-extraValues = []
-
 errorProvider = (errorMessage) ->
   $error.html("Hiba: <span>#{errorMessage}</span>" )
 
@@ -27,8 +25,8 @@ getNumber = (label) ->
    prompt("Írj be egy számot (#{label})!", 0)
 
 displayValueProvider = (key, label, value) ->
-  extraValues.push [label, value]
-  $values.append("<div>#{label} : <strong>#{value}</strong></div>")
+
+#  $values.append("<div>#{label} : <strong>#{value}</strong></div>")
 
 addValueProvider('getNumber', getNumber)
 addErrorProvider(errorProvider)
@@ -37,8 +35,10 @@ addDisplayValueProvider(displayValueProvider)
 parser.init()
 
 clearDisplayValues = () ->
-  extraValues = []
-  $values.html('')
+  #TODO
+
+#  extraValues = []
+#  $values.html('')
 
 clearErrorMessage = () ->
   $error.html('')
@@ -109,6 +109,27 @@ renderNegativeDifficulty = () ->
   cost = calculateNegativeDifficulty(getFormData())
   $negativekn.html(renderSimpleValue('negative',cost))
   cost
+
+#getHtmlDifficultyModifier = (type, names) ->
+#  html = "<div class='form-group'><label class='col-sm-6 control-label' for='id_#{type}'>#{t(type)}:</label> "
+#  html += "<div class='col-sm-6'><select class='form-control' id='id_#{type}' name='#{type}'>"
+#  html += _(names).
+#  keys().
+#  reduce ((sum, key)-> "#{sum}\n<option value='#{key}'>#{t(key)}</option>"), ''
+#  html += "</select></div></div>"
+
+renderHiddenModifier = (inputModifier, inputKey, modifierName) ->
+  type = "#{modifierName}_#{inputKey}"
+  if typeof inputModifier isnt 'number'
+    html = getHtmlDifficultyModifier(type, inputModifier)
+  else
+    html = "<div class='form-group'><label class='col-sm-6 control-label' for='id_#{type}'>#{t(type)}:</label> "
+    html += "<div class='col-sm-6'><input class='form-control' id='id_#{type}' name='#{type}' value='#{inputModifier}' />"
+    html += "</div></div>"
+
+renderHiddenModifiers = () ->
+  content =
+    _.reduce hiddenModifiers, ((res, next, key) -> "#{res}<legend>#{key}<legend>\n#{renderHiddenModifier(next,)}"), ''
 
 renderAlchemyResult = (difficulty) ->
   alchemyValue = getAlchemyValue(difficulty)
