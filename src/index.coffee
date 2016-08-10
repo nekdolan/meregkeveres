@@ -235,5 +235,6 @@ init = () ->
     renderAllSpecialModifiers()
   $('form').on 'change', 'select, input[type="radio"]', update
   $('form').on 'input', 'input', update
+  setTimeout (()-> $('body').show()),0
 
 init()
