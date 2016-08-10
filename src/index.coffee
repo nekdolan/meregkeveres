@@ -1,7 +1,7 @@
 # coffee --compile --output lib src
 
 { t, addErrorProvider, addValueProvider, difficultyModifiers, specialDifficultyModifiers, negativeDifficultyModifiers
-  costMultipliers, calculateDifficulty, calculateCost, calculateNegativeDifficulty,
+  costMultipliers, calculateDifficulty, calculateCost, calculateNegativeDifficulty, specialDifficultyModifierEffects
 alchemyModifiers, testAlchemy, hiddenModifiers} = parser
 
 $main = $('#main_container_field')
@@ -73,7 +73,8 @@ renderSpecialModifier = (name) ->
 renderAllSpecialModifiers = () ->
   content = _(specialDifficultyModifiers)
     .keys()
-    .reduce ((res, type) -> "#{res}<div class='form-group' id='#{type}'><label class='col-sm-2 control-label'>#{t(type)}</label> <div class='col-sm-10'>#{renderSpecialModifier(type)}</div></div>"), ''
+    .reduce ((res, type) -> "#{res}<div class='form-group' id='#{type}'><label class='col-sm-2 control-label'>#{t(type)}</label>
+      <div class='col-sm-10'>#{renderSpecialModifier(type)}</div></div><div id='desc_#{type}'></div>"), ''
   $secondary.html(content)
 
 renderSimpleValue = (labelKey, value, type='info') ->
@@ -120,6 +121,21 @@ renderHiddenModifiers = () ->
       <legend>#{t(key)}</legend>\n" + (_.reduce next.inputs, ((res, next, innerKey) ->
       res + renderHiddenModifier(next,innerKey,key)),'') + "</div>" ),''
   $values.html(content)
+
+renderEffectsDesc = () ->
+  _.each ['eros','gyenge'], (level) ->
+    $("#desc_#{level}").html(renderSpecialDifficultyModifierEffects($("[name='#{level}']:checked").val()))
+  
+renderSpecialDifficultyModifierEffects = (specialModifier) ->
+  labels = specialDifficultyModifierEffects.labels
+  effects = specialDifficultyModifierEffects[specialModifier]
+  if !effects?
+    return ''
+  content = "<table class='table'><tr>"
+  content += _.reduce labels, ((res, next) -> res + "<th>#{next}</th>"), ''
+  content += '</tr><tr>'
+  content += _.reduce effects, ((res, next) -> res + "<td>#{if next is 0 then '-' else next}</td>"), ''
+  content += "</tr></table>"
 
 renderAlchemyResult = (difficulty) ->
   alchemyValue = getAlchemyValue(difficulty)
@@ -188,6 +204,7 @@ exportData = (event) ->
   saveData(name, 'mereg', data)
 
 update = (event) ->
+  renderEffectsDesc()
   clearDisplayValues()
   clearErrorMessage()
   renderCost()
@@ -202,6 +219,7 @@ init = () ->
   renderNegativeModifiers()
   renderAlchemyModifiers()
   renderAllSpecialModifiers()
+  renderEffectsDesc()
   renderHiddenModifiers()
   difficulty = renderDifficulty()
   alchemy = renderAlchemyResult(difficulty.difficulty)

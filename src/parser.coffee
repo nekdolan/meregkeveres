@@ -116,9 +116,6 @@ alchemyModifiers = {
   felszereles : {alkalmi: 1,alap: 2,bovitett: 3,laboratorium: 4}
 }
 
-#getHiddenModifierValues = (modifiers, hiddenModifier) ->
-#  _.reduce hiddenModifier.inputs, ((res, val, key) -> res[key] = getModifierValue(modifiers, key)), {}
-
 hiddenModifiers = {
   fp_vesztes_eros : {
     inputs : {
@@ -177,6 +174,19 @@ calculateSkillModifiers = (modifiers) ->
 specialDifficultyModifiers = {
   eros : {semmi : 0, fp_vesztes: 'fp_vesztes', benultsag: 70, ajulas: 80, alvas: 80, halal: 100, kabultsag: 40, gorcs: 20, gyengeseg: 20, rosszullet: 30, emelyges: 10, bodulat: 40}
   gyenge : {fp_vesztes: 'fp_vesztes'}
+}
+
+specialDifficultyModifierEffects = {
+  labels: ['Erő','All.','Gyo.','Ügy.','Ake.','Aszt.','Int.','Érz.','KÉ','TÉ','VÉ','CÉ','varázslás']
+  semmi : [0,0,0,0,0,0,0,0,0,0,0,0,'igen']
+  halal : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
+#  fp_vesztes : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
+  kabultsag : [-2,-2,-2,-5,-5,-5,0,-4,15,-20,-25,0,'nem']
+  gorcs : [-8,0,-8,-8,0,0,0,0,-30,-40,-35,-15,'nem']
+  gyengeseg : ['1/2',-2,'3/4','3/4',0,0,0,0,-15,-20,-25,0,'igen']
+  rosszullet : ['1/2',-4,'1/2','1/2',-2,0,0,-4,-20,-40,-40,-20,'nem']
+  emelyges : ['3/4',-2,'3/4','1/4',0,0,0,-5,-10,-20,-15,-10,'igen']
+  bodulat : [0,0,'1/2','3/4',-10,-5,-5,-8,-30,-50,-50,-30,'nem']
 }
 
 costMultipliers = {
@@ -361,6 +371,7 @@ exports = {
   alchemyModifiers : alchemyModifiers
   testAlchemy : testAlchemy
   hiddenModifiers : hiddenModifiers
+  specialDifficultyModifierEffects : specialDifficultyModifierEffects
   t : t
 }
 
