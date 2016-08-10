@@ -215,7 +215,9 @@ update = (event) ->
 
 init = () ->
   if(window.self isnt window.top)
-    $('body').css('background-color','transparent')
+    $('body')
+      .css('background-color','transparent')
+      .attr('class','container-fluid')
   renderModifiers()
   renderNegativeModifiers()
   renderAlchemyModifiers()
