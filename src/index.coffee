@@ -131,7 +131,8 @@ renderSpecialDifficultyModifierEffects = (specialModifier) ->
   effects = specialDifficultyModifierEffects[specialModifier]
   if !effects?
     return ''
-  content = "<table class='table'><tr>"
+  add = if window.self isnt window.top then 'background-color: rgba(100, 100, 100,0.1)' else ''
+  content = "<table class='table' style='#{add}'><tr>"
   content += _.reduce labels, ((res, next) -> res + "<th>#{next}</th>"), ''
   content += '</tr><tr>'
   content += _.reduce effects, ((res, next) -> res + "<td>#{if next is 0 then '-' else next}</td>"), ''
