@@ -39,7 +39,7 @@ translate = do ->
     kozepes : 'közepes ideig ható méreg (K6 óra)'
     hosszu : 'hosszú ideig ható méreg (K6 nap)'
     maradando : 'maradandó'
-    azonnali : 'azonnali (K10 szegm.)'
+    azonnali : 'azonnali (K10 szegmens)'
     gyors : 'gyors (K6 kör)'
     lassu : 'lassú (2K6 óra)'
     nagyon_lassu : 'nagyon lassú (K6 nap)'
@@ -78,6 +78,14 @@ translate = do ->
     laboratorium : 'laboratórium'
     felszereles : 'felszerelés'
     k3 : 'k6/2', k5 : 'k10/2', k6: 'k6', k10 : 'k10'
+    fp_vesztes_eros : "Fp vesztés (erős)"
+    fp_vesztes_eros_dice : "Kocka típusa"
+    fp_vesztes_eros_amount : "Kockák száma"
+    fp_vesztes_gyenge : "Fp vesztés (gyenge)"
+    fp_vesztes_gyenge_dice : "Kocka típusa"
+    fp_vesztes_gyenge_amount : "Kockák száma"
+    tobb_amount : "Komponensek száma"
+
   }
   (text) ->
     dictionary[text] or text
@@ -108,8 +116,8 @@ alchemyModifiers = {
   felszereles : {alkalmi: 1,alap: 2,bovitett: 3,laboratorium: 4}
 }
 
-getHiddenModifierValues = (modifiers, hiddenModifier) ->
-  _.reduce hiddenModifier.inputs, ((res, val, key) -> res[key] = getModifierValue(modifiers, key)), {}
+#getHiddenModifierValues = (modifiers, hiddenModifier) ->
+#  _.reduce hiddenModifier.inputs, ((res, val, key) -> res[key] = getModifierValue(modifiers, key)), {}
 
 hiddenModifiers = {
   fp_vesztes_eros : {
@@ -117,27 +125,21 @@ hiddenModifiers = {
       dice : {k6 : 6, k10 : 10}
       amount : 1
     }
-    calculate : (modifiers) ->
-      values = getHiddenModifierValues(modifiers, hiddenModifiers)
-      "#{values.dice} * #{values.amount}"
+    calculate : (modifiers) -> "#{modifiers[1].value}#{modifiers[0].value}"
   }
   fp_vesztes_gyenge : {
     inputs : {
       dice : {k3: 3, k5 : 5, k6 : 6, k10: 10}
       amount : 1
     }
-    calculate : (modifiers) ->
-      values = getHiddenModifierValues(modifiers, hiddenModifiers)
-      {
-        value : values.dice * values.amount
-        text : "#{values.dice} * #{values.amount}"
-      }
+    calculate : (modifiers) -> "#{modifiers[1].value}#{modifiers[0].value}"
   }
-#  tobb : {
-#    inputs : {
-#      amount : 2
-#    }
-#  }
+  tobb : {
+    inputs : {
+      amount : 2
+    }
+    calculate : (modifiers) -> "#{modifiers[0].value}"
+  }
 }
 
 alchemy = {
@@ -165,18 +167,16 @@ calculateSkillModifiers = (modifiers) ->
     fajta = getModifierValue(modifiers, 'fajta')
     szint = getModifierValue(modifiers, 'szint')
     if fajta in ['gaz','kontakt','tobb']
-      if meregkeveres is 'af'
-        sendError('fajta_error')
+      sendError('fajta_error')
       return NaN
     if szint in ['sz6', 'sz7', 'sz8', 'sz9', 'sz10', 'sz11', 'sz12', 'sz13']
-      if meregkeveres is 'af'
-        sendError('szint_error')
+      sendError('szint_error')
       return NaN
   return 0
 
 specialDifficultyModifiers = {
   eros : {semmi : 0, fp_vesztes: 'fp_vesztes', benultsag: 70, ajulas: 80, alvas: 80, halal: 100, kabultsag: 40, gorcs: 20, gyengeseg: 20, rosszullet: 30, emelyges: 10, bodulat: 40}
-  gyenge : {}
+  gyenge : {fp_vesztes: 'fp_vesztes'}
 }
 
 costMultipliers = {
@@ -195,7 +195,6 @@ costMultipliers = {
 }
 
 sendError = ->
-sendValue = ->
 
 calculateCost = (modifiers) ->
     data = getLevelData(modifiers, ['szint','idotartam','beszerzes'])
@@ -210,32 +209,18 @@ calculateCost = (modifiers) ->
 t = (key) -> _.capitalize(translate(key))
 
 valueProviders =
-  tobb : () -> @getNumber(t('tobb'))
-  fp_vesztes : () -> @getNumber(t('fp_vesztes'))
+  tobb : () -> @getNumber('tobb')
+  fp_vesztes_eros : (effect) -> @getNumber('fp_vesztes_eros')
+  fp_vesztes_gyenge : (effect) -> @getNumber('fp_vesztes_gyenge')
 
 valueDifficultyCalculator =
   tobb : (val) -> 30 * val
-  fp_vesztes : (val) -> 2 * val
-
-cacheOverride = (name, fn) ->
-   cache = null
-   cacheKey = ''
-   (changed) ->
-     key = "#{name}_#{changed}"
-     console.log key
-     if (key is cacheKey) or (cache is null)
-       cache = fn.call(@)
-       cacheKey = key
-       cache
-     else
-       cache
-
-for key, provider of valueProviders
-  valueProviders[key] = cacheOverride(key, provider)
+  fp_vesztes_eros : (val) -> 2 * val
+  fp_vesztes_gyenge : (val) -> val
 
 getDifficultyForModifier = (type, name, changed, charLevel) ->
     if(type in ['eros','gyenge'])
-      if(type is 'gyenge')
+      if(type is 'gyenge' and name isnt 'fp_vesztes')
         return 0
       difficulty = specialDifficultyModifiers[type]?[name]
     else
@@ -244,14 +229,12 @@ getDifficultyForModifier = (type, name, changed, charLevel) ->
       else
         difficulty = 0
     if typeof difficulty is 'string'
-#      console.log changed
-      difficultyKey = difficulty
-      difficulty = valueProviders[difficultyKey](changed)
+      difficultyKey = difficulty + if(type in ['eros','gyenge']) then "_#{type}" else ""
+      difficulty = valueProviders[difficultyKey]()
       if isNaN(difficulty)
         sendError(difficultyKey)
       else
         if changed isnt 'ignore'
-          sendValue(difficultyKey, difficulty)
           if charLevel isnt 'mf' and difficulty > 15
             sendError('fp_overflow')
             return NaN
@@ -302,6 +285,7 @@ calculateSpecialDifficulty = (modifiers) ->
   _(specialConditions).reduce ((res, fn, key) -> res + checkForError(key, fn(eros, gyenge, fo, data))), 0
 
 errorMessages =
+  ugyanaz : "A gyenge hatás fp értéke nem lehet az erős hatás fp értékének felénél több"
   overflow : "Az erős hatás szintje nem lehet alacsonyabb vagy egyenlő a gyenge hatás szintjénél!"
   idegenOverflow : "Nem létezik elegendően magas szintű, az erős idegen hatásnak megfelelő méreg!"
   noIdenticalEffect : "Két hatás nem lehet azonos!"
@@ -330,11 +314,13 @@ specialConditions = {
     if gyenge.poisonLevel isnt fo.poisonLevel then ret += 20
     ret
   ugyanaz : (eros, gyenge, fo, data) ->
-    if eros.poisonLevel != gyenge.poisonLevel or eros.effectLevel != gyenge.effectLevel
+    if eros.poisonLevel != gyenge.poisonLevel or eros.effectLevel != gyenge.effectLevel or eros.effectType isnt 'fp_vesztes'
       return 0
-    difficulty = Math.round(getDifficultyForModifier('eros', eros.effectType, 'ignore')/2)
-    difficulty += 20 if difficulty > 0
-    return difficulty
+    difficultyEros = getDifficultyForModifier('eros', eros.effectType, 'ignore')
+    difficultyGyenge = getDifficultyForModifier('gyenge', eros.effectType, 'ignore')
+    if difficultyEros / 4 < difficultyGyenge
+      return NaN
+    return 20
   gyengites : (eros, gyenge) ->
     if gyenge.effectLevel < eros.effectLevel - 2 and gyenge.effectLevel isnt 0
       return -10
@@ -361,9 +347,6 @@ exports = {
   addErrorProvider : (fn) ->
     sendError = (key) ->
       fn(errorMessages[key] or "")
-  addDisplayValueProvider : (fn) ->
-    sendValue = (key, value) ->
-      fn(key, t(key), value)
   addValueProvider : (name, fn) ->
     valueProviders[name] = fn
   init : () ->

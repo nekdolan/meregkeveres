@@ -1,7 +1,7 @@
 # coffee --compile --output lib src
 
 { t, addErrorProvider, addValueProvider, difficultyModifiers, specialDifficultyModifiers, negativeDifficultyModifiers
-  costMultipliers, calculateDifficulty, calculateCost, addDisplayValueProvider, calculateNegativeDifficulty,
+  costMultipliers, calculateDifficulty, calculateCost, calculateNegativeDifficulty,
 alchemyModifiers, testAlchemy, hiddenModifiers} = parser
 
 $main = $('#main_container_field')
@@ -22,23 +22,18 @@ errorProvider = (errorMessage) ->
   $error.html("Hiba: <span>#{errorMessage}</span>" )
 
 getNumber = (label) ->
-   prompt("Írj be egy számot (#{label})!", 0)
-
-displayValueProvider = (key, label, value) ->
-
-#  $values.append("<div>#{label} : <strong>#{value}</strong></div>")
+  $("#"+label).removeClass('hidden')
+  values = $("[id*=#{label}]").serializeArray()
+  _.reduce values, ((res, next) -> res * next.value.replace(/\D/g,'')),1
 
 addValueProvider('getNumber', getNumber)
 addErrorProvider(errorProvider)
-addDisplayValueProvider(displayValueProvider)
 
 parser.init()
 
 clearDisplayValues = () ->
+  $values.children().addClass('hidden')
   #TODO
-
-#  extraValues = []
-#  $values.html('')
 
 clearErrorMessage = () ->
   $error.html('')
@@ -110,26 +105,21 @@ renderNegativeDifficulty = () ->
   $negativekn.html(renderSimpleValue('negative',cost))
   cost
 
-#getHtmlDifficultyModifier = (type, names) ->
-#  html = "<div class='form-group'><label class='col-sm-6 control-label' for='id_#{type}'>#{t(type)}:</label> "
-#  html += "<div class='col-sm-6'><select class='form-control' id='id_#{type}' name='#{type}'>"
-#  html += _(names).
-#  keys().
-#  reduce ((sum, key)-> "#{sum}\n<option value='#{key}'>#{t(key)}</option>"), ''
-#  html += "</select></div></div>"
-
 renderHiddenModifier = (inputModifier, inputKey, modifierName) ->
   type = "#{modifierName}_#{inputKey}"
   if typeof inputModifier isnt 'number'
     html = getHtmlDifficultyModifier(type, inputModifier)
   else
     html = "<div class='form-group'><label class='col-sm-6 control-label' for='id_#{type}'>#{t(type)}:</label> "
-    html += "<div class='col-sm-6'><input class='form-control' id='id_#{type}' name='#{type}' value='#{inputModifier}' />"
+    html += "<div class='col-sm-6'><input min='#{inputModifier}' type='number' class='form-control' id='id_#{type}' name='#{type}' value='#{inputModifier}' />"
     html += "</div></div>"
 
 renderHiddenModifiers = () ->
-  content =
-    _.reduce hiddenModifiers, ((res, next, key) -> "#{res}<legend>#{key}<legend>\n#{renderHiddenModifier(next,)}"), ''
+  content = _.reduce hiddenModifiers, ((res, next, key) ->
+    res + "<div class='hidden hidden_input' id='#{key}'>
+      <legend>#{t(key)}</legend>\n" + (_.reduce next.inputs, ((res, next, innerKey) ->
+      res + renderHiddenModifier(next,innerKey,key)),'') + "</div>" ),''
+  $values.html(content)
 
 renderAlchemyResult = (difficulty) ->
   alchemyValue = getAlchemyValue(difficulty)
@@ -160,13 +150,18 @@ getAlchemyValue = (difficulty) ->
   testAlchemy(supplyType, difficulty, alchemyLevel)
 
 getFormData = (attr) ->
-  data = $form.serializeArray();
+  data = $form.serializeArray()
   if !attr then return data
   _(data).find({name : attr})?.value
 
 exportData = (event) ->
-  clearDisplayValues()
-  formData = getFormData()
+#  clearDisplayValues()
+  formAllData = getFormData()
+  values = _.map ($values.find('.hidden_input').not('.hidden').map () -> this.id), (id) ->
+    [t(id), hiddenModifiers[id].calculate($("##{id} :input").serializeArray())]
+  formData = _.reject formAllData, (input) ->
+    match = _.find hiddenModifiers, (modifier, modifierKey) ->
+      new RegExp("#{modifierKey}.*").test(input.name)
   difficulty = calculateDifficulty(formData, null, $('#id_meregkeveres').val())
   negativeDifficulty = calculateNegativeDifficulty(formData)
   alchemy = getAlchemyValue(difficulty)
@@ -189,14 +184,25 @@ exportData = (event) ->
     ['A méreg ára', "#{cost} ezüst"]
   ]
   data = _.map formData, (row) -> [t(row.name), t(row.value)]
-  data = _.concat(results, data, extraValues)
+  data = _.concat(results, data, values)
   saveData(name, 'mereg', data)
 
+update = (event) ->
+  clearDisplayValues()
+  clearErrorMessage()
+  renderCost()
+  difficulty = renderDifficulty(event.target)
+  alchemy = renderAlchemyResult(difficulty.difficulty)
+  renderSuccess(difficulty.success, alchemy)
+
 init = () ->
+  if(window.self isnt window.top)
+    $('body').css('background-color','transparent')
   renderModifiers()
   renderNegativeModifiers()
   renderAlchemyModifiers()
   renderAllSpecialModifiers()
+  renderHiddenModifiers()
   difficulty = renderDifficulty()
   alchemy = renderAlchemyResult(difficulty.difficulty)
   renderSuccess(difficulty.success, alchemy)
@@ -208,12 +214,7 @@ init = () ->
     $('#id_tipus_eros, #id_tipus_gyenge').val($(event.target).val())
   $('form').on 'change', 'select[name^="tipus"]', () ->
     renderAllSpecialModifiers()
-  $('form').on 'change', 'select, input', (event) ->
-    clearDisplayValues()
-    clearErrorMessage()
-    renderCost()
-    difficulty = renderDifficulty(event.target)
-    alchemy = renderAlchemyResult(difficulty.difficulty)
-    renderSuccess(difficulty.success, alchemy)
+  $('form').on 'change', 'select, input[type="radio"]', update
+  $('form').on 'input', 'input', update
 
 init()
