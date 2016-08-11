@@ -232,7 +232,7 @@ init = () ->
   $('form').on 'change', '#id_tipus_fo', (event) ->
     $('#id_tipus_eros, #id_tipus_gyenge').val($(event.target).val())
   $('form').on 'change', 'select[name^="tipus"]', () ->
-    renderAllSpecialModifiers(event.target.id.slice(9))
+    renderAllSpecialModifiers()
   $('form').on 'change', 'select, input[type="radio"]', update
   $('form').on 'input', 'input', update
   setTimeout (()-> $('body').show()),0
