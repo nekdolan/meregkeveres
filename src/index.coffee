@@ -132,11 +132,11 @@ renderSpecialDifficultyModifierEffects = (specialModifier) ->
   if !effects?
     return ''
   add = if window.self isnt window.top then 'background-color: rgba(100, 100, 100,0.1)' else ''
-  content = "<table class='table' style='#{add}'><tr>"
+  content = "<div class='table-responsive'><table class='table' style='#{add}'><tr>"
   content += _.reduce labels, ((res, next) -> res + "<th>#{next}</th>"), ''
   content += '</tr><tr>'
   content += _.reduce effects, ((res, next) -> res + "<td>#{if next is 0 then '-' else next}</td>"), ''
-  content += "</tr></table>"
+  content += "</tr></table></div>"
 
 renderAlchemyResult = (difficulty) ->
   alchemyValue = getAlchemyValue(difficulty)
@@ -172,7 +172,6 @@ getFormData = (attr) ->
   _(data).find({name : attr})?.value
 
 exportData = (event) ->
-#  clearDisplayValues()
   formAllData = getFormData()
   values = _.map ($values.find('.hidden_input').not('.hidden').map () -> this.id), (id) ->
     [t(id), hiddenModifiers[id].calculate($("##{id} :input").serializeArray())]
@@ -233,7 +232,7 @@ init = () ->
   $('form').on 'change', '#id_tipus_fo', (event) ->
     $('#id_tipus_eros, #id_tipus_gyenge').val($(event.target).val())
   $('form').on 'change', 'select[name^="tipus"]', () ->
-    renderAllSpecialModifiers()
+    renderAllSpecialModifiers(event.target.id.slice(9))
   $('form').on 'change', 'select, input[type="radio"]', update
   $('form').on 'input', 'input', update
   setTimeout (()-> $('body').show()),0
