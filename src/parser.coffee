@@ -31,19 +31,19 @@ translate = do ->
     gaz : 'gáz vagy légimérgek'
     kontakt : 'kontaktmérgek'
     tobb : 'több komponensű mérgek'
-    sz2 : '2.', sz3 : '3.', sz4 : '4.', sz5 : '5.', sz6 : '6.', sz7 : '7.'
-    sz8: '8.', sz9: '9.', sz10: '10.', sz11: '11.', sz12: '12.', sz13: '13.'
+    sz0: '0.', sz1: '1.', sz2 : '2.', sz3 : '3.', sz4 : '4.', sz5 : '5.', sz6 : '6.'
+    sz7 : '7.', sz8: '8.', sz9: '9.', sz10: '10.', sz11: '11.', sz12: '12.', sz13: '13.'
     h1: '1 hónap', h2: '2 hónap', h3: '3 hónap', h4: '4 hónap', h5: '5 hónap', h6: '6 hónap'
-    egyszeri : 'egyszeri'
-    rovid : 'rövid ideig ható méreg'
-    kozepes : 'közepes ideig ható méreg'
-    hosszu : 'hosszú ideig ható méreg'
+    egyszeri : 'egyszeri (1 kör)'
+    rovid : 'rövid ideig ható méreg (K6x10 perc)'
+    kozepes : 'közepes ideig ható méreg (K6 óra)'
+    hosszu : 'hosszú ideig ható méreg (K6 nap)'
     maradando : 'maradandó'
-    azonnali : 'azonnali'
-    gyors : 'gyors'
-    lassu : 'lassú'
-    nagyon_lassu : 'nagyon lassú'
-    lappango : 'lappangó'
+    azonnali : 'azonnali (K10 szegmens)'
+    gyors : 'gyors (K6 kör)'
+    lassu : 'lassú (2K6 óra)'
+    nagyon_lassu : 'nagyon lassú (K6 nap)'
+    lappango : 'lappangó (speciális)'
     egyeb : 'egyéb hatás'
     kulonleges : 'különleges hatás'
     idegen : 'idegen hatás'
@@ -54,12 +54,38 @@ translate = do ->
     gyenge : 'gyenge hatás'
     eros : 'erős hatás'
     kn : 'kikeverési nehézség'
+    negative : 'karakter KN értéke'
     van : 'van'
     nincs : 'nincs'
     ar : 'ár (ezüst)'
     beszerzes : 'beszerzés módja'
     vasarlas : 'vásárlás'
     keszites : 'készítés'
+    meregkeveres : 'méregkeverés'
+    herbalizmus : 'herbalizmus'
+    asvanytan : 'ásványtan'
+    elettan : 'élettan'
+    anatomia : 'anatómia'
+    gyakorlat : 'gyakorlat'
+    recept : 'recept'
+    kikeheverto : 'kikeverhető'
+    af : 'alapfok'
+    mf : 'mesterfok'
+    alkimia : 'alkímia'
+    alkalmi : 'alkalmi'
+    alap : 'alap'
+    bovitett : 'bővített'
+    laboratorium : 'laboratórium'
+    felszereles : 'felszerelés'
+    k3 : 'k6/2', k5 : 'k10/2', k6: 'k6', k10 : 'k10'
+    fp_vesztes_eros : "Fp vesztés (erős)"
+    fp_vesztes_eros_dice : "Kocka típusa"
+    fp_vesztes_eros_amount : "Kockák száma"
+    fp_vesztes_gyenge : "Fp vesztés (gyenge)"
+    fp_vesztes_gyenge_dice : "Kocka típusa"
+    fp_vesztes_gyenge_amount : "Kockák száma"
+    tobb_amount : "Komponensek száma"
+
   }
   (text) ->
     dictionary[text] or text
@@ -78,9 +104,90 @@ difficultyModifiers = {
   beszerzes : {vasarlas : 0, keszites: 0}
 }
 
+negativeDifficultyModifiers = {
+  meregkeveres : {nincs: 0, af: 100, mf : 200}
+  herbalizmus : {nincs: 0, af: 8, mf : 15}
+  elettan : {nincs: 0, af: 8, mf : 15}
+  recept : {nincs: 0, van: 50}
+}
+
+alchemyModifiers = {
+  alkimia : {nincs: 0, af: 'af', mf : 'mf'}
+  felszereles : {alkalmi: 1,alap: 2,bovitett: 3,laboratorium: 4}
+}
+
+hiddenModifiers = {
+  fp_vesztes_eros : {
+    inputs : {
+      dice : {k6 : 6, k10 : 10}
+      amount : 1
+    }
+    calculate : (modifiers) -> "#{modifiers[1].value}#{modifiers[0].value}"
+  }
+  fp_vesztes_gyenge : {
+    inputs : {
+      dice : {k3: 3, k5 : 5, k6 : 6, k10: 10}
+      amount : 1
+    }
+    calculate : (modifiers) -> "#{modifiers[1].value}#{modifiers[0].value}"
+  }
+  tobb : {
+    inputs : {
+      amount : 2
+    }
+    calculate : (modifiers) -> "#{modifiers[0].value}"
+  }
+}
+
+alchemy = {
+    poisonDifficulty : [0, 100, 140, 180, 220, 260, 300, 340]
+    levels: { 
+      nincs : [1,2,3,4]
+      af: [1,2,2,3,3,4]
+      mf: [1,1,2,2,3,3,3,4]
+    }
+}
+
+testAlchemy = (supplyType, difficulty, alchemyLevel) ->
+  supplyLevel = alchemyModifiers.felszereles[supplyType]
+  availableAlchemyLevel = alchemy.levels[alchemyLevel].lastIndexOf(supplyLevel)+1
+  neededAlchemyLevel = _.findIndex alchemy.poisonDifficulty, (num) -> num > (difficulty or 0)
+  {
+    test : availableAlchemyLevel >= neededAlchemyLevel
+    availableAlchemyLevel
+    neededAlchemyLevel
+  }
+
+calculateSkillModifiers = (modifiers) ->
+  meregkeveres = getModifierValue(modifiers, 'meregkeveres')
+  if meregkeveres isnt 'mf'
+    fajta = getModifierValue(modifiers, 'fajta')
+    szint = getModifierValue(modifiers, 'szint')
+    if fajta in ['gaz','kontakt','tobb']
+      sendError('fajta_error')
+      return NaN
+    if szint in ['sz6', 'sz7', 'sz8', 'sz9', 'sz10', 'sz11', 'sz12', 'sz13']
+      sendError('szint_error')
+      return NaN
+  return 0
+
 specialDifficultyModifiers = {
   eros : {semmi : 0, fp_vesztes: 'fp_vesztes', benultsag: 70, ajulas: 80, alvas: 80, halal: 100, kabultsag: 40, gorcs: 20, gyengeseg: 20, rosszullet: 30, emelyges: 10, bodulat: 40}
-  gyenge : {}
+  gyenge : {fp_vesztes: 'fp_vesztes'}
+}
+
+specialDifficultyModifierEffects = {
+  labels: ['Erő','All.','Gyo.','Ügy.','Ake.','Aszt.','Int.','Érz.','KÉ','TÉ','VÉ','CÉ','varázslás']
+  semmi : [0,0,0,0,0,0,0,0,0,0,0,0,'igen']
+  halal : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
+  ajulas : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
+#  fp_vesztes : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
+  kabultsag : [-2,-2,-2,-5,-5,-5,0,-4,15,-20,-25,0,'nem']
+  gorcs : [-8,0,-8,-8,0,0,0,0,-30,-40,-35,-15,'nem']
+  gyengeseg : ['1/2',-2,'3/4','3/4',0,0,0,0,-15,-20,-25,0,'igen']
+  rosszullet : ['1/2',-4,'1/2','1/2',-2,0,0,-4,-20,-40,-40,-20,'nem']
+  emelyges : ['3/4',-2,'3/4','1/4',0,0,0,-5,-10,-20,-15,-10,'igen']
+  bodulat : [0,0,'1/2','3/4',-10,-5,-5,-8,-30,-50,-50,-30,'nem']
 }
 
 costMultipliers = {
@@ -98,53 +205,65 @@ costMultipliers = {
     szint : {sz2: 2, sz3: 4, sz4: 7, sz5: 10, sz6: 14, sz7: 19, sz8: 26, sz9: 31, sz10: 31, sz11: 31, sz12: 31, sz13: 31}
 }
 
+sendError = ->
+
 calculateCost = (modifiers) ->
     data = getLevelData(modifiers, ['szint','idotartam','beszerzes'])
     {eros, gyenge, fo} = getPoisonLevelData(data)
     poison = costMultipliers[eros.poisonType]
     effectCost = poison.hatas[eros.effectType]
     levelCost = poison.szint[data.szint]
-    durationCost = if data.idotartam is 'maradando' then 3 else 1
+    durationCost = if data.idotartam is 'maradando' then 4 else 1
     creationCost = if data.beszerzes is 'vasarlas' then 2 else 1
     return levelCost * effectCost * durationCost * creationCost
 
 t = (key) -> _.capitalize(translate(key))
 
-valueProviders = {
-  tobb : () -> 30 * @getNumber(t('tobb'))
-  fp_vesztes : () -> 2 * @getNumber(t('fp_vesztes'))
-}
+valueProviders =
+  tobb : () -> @getNumber('tobb')
+  fp_vesztes_eros : (effect) -> @getNumber('fp_vesztes_eros')
+  fp_vesztes_gyenge : (effect) -> @getNumber('fp_vesztes_gyenge')
 
-cacheOverride = (name, fn) ->
-   cache = null
-   cacheKey = ''
-   (changed) ->
-     key = "#{name}_#{changed}"
-     if (key is cacheKey) or (cache is null)
-       cache = fn.call(@)
-       cacheKey = key
-       cache
-     else
-       cache
+valueDifficultyCalculator =
+  tobb : (val) -> 30 * val
+  fp_vesztes_eros : (val) -> 2 * val
+  fp_vesztes_gyenge : (val) -> val
 
-for key, provider of valueProviders
-  valueProviders[key] = cacheOverride(key, provider)
-
-getDifficultyForModifier = (type, name, changed) ->
+getDifficultyForModifier = (type, name, changed, charLevel) ->
     if(type in ['eros','gyenge'])
-      if(type is 'gyenge')
+      if(type is 'gyenge' and name isnt 'fp_vesztes')
         return 0
-      if(type is 'eros')
-        difficulty = specialDifficultyModifiers[type]?[name]
+      difficulty = specialDifficultyModifiers[type]?[name]
     else
-      difficulty = difficultyModifiers[type]?[name]
+      if difficultyModifiers[type]?[name]
+        difficulty = difficultyModifiers[type][name]
+      else
+        difficulty = 0
     if typeof difficulty is 'string'
-      difficulty = valueProviders[difficulty](changed)
+      difficultyKey = difficulty + if(type in ['eros','gyenge']) then "_#{type}" else ""
+      difficulty = valueProviders[difficultyKey]()
+      if isNaN(difficulty)
+        sendError(difficultyKey)
+      else
+        if changed isnt 'ignore'
+          if charLevel isnt 'mf' and difficulty > 15
+            sendError('fp_overflow')
+            return NaN
+      difficulty = valueDifficultyCalculator[difficultyKey](difficulty)
     if difficulty? then difficulty else NaN
 
-calculateDifficulty = (modifiers, changed) ->
-  calculateSpecialDifficulty(modifiers) + _(modifiers)
-    .map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed)
+calculateDifficulty = (modifiers, changed, charLevel) ->
+  calculateSkillModifiers(modifiers) + calculateSpecialDifficulty(modifiers) + _(modifiers)
+    .map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed, charLevel)
+    .reduce (prev, next) -> prev + next
+
+getModifierValue = (modifiers, attr) ->
+  (_(modifiers).find (modifier) -> modifier.name is attr).value
+
+calculateNegativeDifficulty = (modifiers) ->
+  _(modifiers)
+    .filter (modifier) -> negativeDifficultyModifiers[modifier.name]?
+    .map (modifier) -> negativeDifficultyModifiers[modifier.name][modifier.value]
     .reduce (prev, next) -> prev + next
 
 getPosisonLevels = (label, data) ->
@@ -166,16 +285,34 @@ getLevelData = (modifiers, extraInfo = []) ->
   res = _(modifiers).reduce ((res, val) -> if val.name in list then _(res).set(val.name, val.value) else res), {}
   res.value()
 
+checkForError = (key, value) ->
+  if isNaN(value)
+    sendError(key)
+  value
+
 calculateSpecialDifficulty = (modifiers) ->
   data = getLevelData(modifiers, ['idotartam'])
   {eros, gyenge, fo} = getPoisonLevelData(data)
-  # for key, fn of specialConditions
-  #   console.log key, fn(eros, gyenge, fo, data)
-  _(specialConditions).reduce ((res, fn) -> res + fn(eros, gyenge, fo, data)), 0
+  _(specialConditions).reduce ((res, fn, key) -> res + checkForError(key, fn(eros, gyenge, fo, data))), 0
+
+errorMessages =
+  ugyanaz : "A gyenge hatás fp értéke nem lehet az erős hatás fp értékének felénél több"
+  overflow : "Az erős hatás szintje nem lehet alacsonyabb vagy egyenlő a gyenge hatás szintjénél!"
+  idegenOverflow : "Nem létezik elegendően magas szintű, az erős idegen hatásnak megfelelő méreg!"
+  noIdenticalEffect : "Két hatás nem lehet azonos!"
+  fp_vesztes : "A beírt értéknek számnak kell lennie!"
+  fp_overflow : 'Az fp vesztés nem lehet 15-nél nagyobb ha nincs méregkeverés mf-je a kalandozónak'
+  tobb : "A beírt értéknek számnak kell lennie!"
+  fajta_error : "Ezt a típust csak mesterfokú méregkeverés képzettséggel lehet kikeverni!"
+  szint_error : "Ilyen szintű mérget csak mesterfokú méregkeverés képzettséggel lehet kikeverni!"
 
 specialConditions = {
   overflow : (eros, gyenge) ->
-    if eros.effectLevel < gyenge.effectLevel
+    if eros.effectLevel < gyenge.effectLevel and gyenge.effectLevel isnt 0
+      return NaN
+    return 0
+  noIdenticalEffect : (eros, gyenge) ->
+    if eros.effectType is gyenge.effectType and eros.effectLevel isnt 0 and eros.effectType isnt 'fp_vesztes'
       return NaN
     return 0
   idegenOverflow : (eros, gyenge, fo) ->
@@ -188,11 +325,13 @@ specialConditions = {
     if gyenge.poisonLevel isnt fo.poisonLevel then ret += 20
     ret
   ugyanaz : (eros, gyenge, fo, data) ->
-    if eros.poisonLevel != gyenge.poisonLevel or eros.effectLevel != gyenge.effectLevel
+    if eros.poisonLevel != gyenge.poisonLevel or eros.effectLevel != gyenge.effectLevel or eros.effectType isnt 'fp_vesztes'
       return 0
-    difficulty = Math.round(getDifficultyForModifier('eros', eros.effectType)/2)
-    difficulty += 20 if difficulty > 0
-    return difficulty
+    difficultyEros = getDifficultyForModifier('eros', eros.effectType, 'ignore')
+    difficultyGyenge = getDifficultyForModifier('gyenge', eros.effectType, 'ignore')
+    if difficultyEros / 4 < difficultyGyenge
+      return NaN
+    return 20
   gyengites : (eros, gyenge) ->
     if gyenge.effectLevel < eros.effectLevel - 2 and gyenge.effectLevel isnt 0
       return -10
@@ -216,15 +355,24 @@ specialConditions = {
 }
 
 exports = {
+  addErrorProvider : (fn) ->
+    sendError = (key) ->
+      fn(errorMessages[key] or "")
   addValueProvider : (name, fn) ->
     valueProviders[name] = fn
   init : () ->
   difficultyModifiers : difficultyModifiers
+  negativeDifficultyModifiers : negativeDifficultyModifiers
   costMultipliers : costMultipliers
   translate : translate
   specialDifficultyModifiers : specialDifficultyModifiers
   calculateDifficulty : calculateDifficulty
+  calculateNegativeDifficulty : calculateNegativeDifficulty
   calculateCost : calculateCost
+  alchemyModifiers : alchemyModifiers
+  testAlchemy : testAlchemy
+  hiddenModifiers : hiddenModifiers
+  specialDifficultyModifierEffects : specialDifficultyModifierEffects
   t : t
 }
 

@@ -1,23 +1,78 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
-    <h3>Méregkeverés Kalkulátor v0.1</h3>
-    <form class="" action="index.html" method="post">
-      <div id="main_container_field"></div>
-      <div id="secondary_container_field"></div>
-      <div id="kn_container_field"></div>
-      <div id="cost_container_field"></div>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MAGUS Méregkeverés</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <style>
+        body {
+            display: none;
+        }
+        legend {
+            border-width: 0px;
+        }
+        #values_container_field:empty, #error_container_field:empty {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="main-body" class="container">
+    <h2>
+        Méregkeverés Kalkulátor
+        <a target="_blank" href="http://kalandozok.hu/cikkgyujtemeny/kieg%C3%A9sz%C3%ADt%C5%91k/m%C3%A9rgek/m%C3%A9regkever%C3%A9s-k%C3%A9tfok%C3%BA-r720/">
+            <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+        </a>
+        <a target="_blank" href="http://kalandozok.hu/cikkgyujtemeny/kieg%C3%A9sz%C3%ADt%C5%91k/m%C3%A9rgek/az-ynevi-m%C3%A9regkever%C3%A9s-r714/">
+            <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+        </a>
+        <a id="export" class="pull-right btn btn-default" href="#" role="button">
+            Exportálás <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
+        </a>
+    </h2>
+    <legend id="results">
+        <span id="cost_container_field"></span>
+        <span id="kn_container_field"></span>
+        <span id="negative_kn_container_field"></span>
+        <span id="alchemy_result_container_field"></span>
+        <span id="difference_container_field"></span>
+    </legend>
+    <div class="row">
+        <div class="col-xs-12">
+            <div id="error_container_field" class="alert alert-danger"></div>
+        </div>
+    </div>
+    <form class="form-horizontal" id="form_data" action="index.html" method="post">
+        <div class="row">
+            <div class="col-sm-12 col-md-5" id="main_container_field"></div>
+            <div class="col-sm-12 col-md-7">
+                <div id="secondary_container_field"></div>
+                <div class="col-sm-12 col-md-6">
+                    <legend>Karakter</legend>
+                    <div id="negative_value_container_filed"></div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <legend>Alkímia és felszerelés</legend>
+                    <div id="alchemy_container_filed"></div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <div id="values_container_field" class=""></div>
+                </div>
+            </div>
+        </div>
     </form>
-    <!-- <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.11.2/lodash.min.js"></script> -->
-    <script src="js/jquery-2.2.3.min.js" type="text/javascript"></script>
-    <script src="js/lodash.min.js" type="text/javascript"></script>
-    <!-- <script src="lib/browser.js" type="text/javascript"></script> -->
-    <script src="lib/parser.js" type="text/javascript"></script>
-    <script src="lib/index.js" type="text/javascript"></script>
-  </body>
+</div>
+<script src="js/jquery-2.2.4.min.js" type="text/javascript"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/lodash.min.js" type="text/javascript"></script>
+
+<script src="js/xlsx.core.min.js" type="text/javascript"></script>
+<script src="js/blob.js" type="text/javascript"></script>
+<script src="js/filesaver.js" type="text/javascript"></script>
+<script src="js/save-data.js" type="text/javascript"></script>
+
+<script src="lib/parser.js" type="text/javascript"></script>
+<script src="lib/index.js" type="text/javascript"></script>
+</body>
 </html>
