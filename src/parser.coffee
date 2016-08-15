@@ -101,7 +101,7 @@ difficultyModifiers = {
   # tartositas : {h1: 5, h2: 10, h3: 15, h4: 20, h5: 25, h6: 30}
   egyeb : {nincs: 0, van : 50}
   kulonleges : {nincs: 0, van : 50}
-  beszerzes : {vasarlas : 0, keszites: 0}
+  beszerzes : {keszites: 0, vasarlas : 0}
 }
 
 negativeDifficultyModifiers = {
@@ -152,6 +152,7 @@ testAlchemy = (supplyType, difficulty, alchemyLevel) ->
   supplyLevel = alchemyModifiers.felszereles[supplyType]
   availableAlchemyLevel = alchemy.levels[alchemyLevel].lastIndexOf(supplyLevel)+1
   neededAlchemyLevel = _.findIndex alchemy.poisonDifficulty, (num) -> num > (difficulty or 0)
+  if neededAlchemyLevel is -1 then neededAlchemyLevel = alchemy.poisonDifficulty.length
   {
     test : availableAlchemyLevel >= neededAlchemyLevel
     availableAlchemyLevel
