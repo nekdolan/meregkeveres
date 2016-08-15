@@ -211,8 +211,8 @@ update = (event) ->
   alchemy = renderAlchemyResult(difficulty.difficulty)
   renderSuccess(difficulty.success, alchemy)
 
-updateCharacter = (selected) ->
-  $('#negative_value_container_filed select').each () ->
+updateCharacterAndSet = (selected) ->
+  $('#negative_value_container_filed select, #alchemy_container_filed select').each () ->
     $(this).children('option:last').prop('selected', selected);
 
 init = () ->
@@ -236,9 +236,9 @@ init = () ->
     $('#id_tipus_eros, #id_tipus_gyenge').val($(event.target).val())
   $('form').on 'change', '#id_beszerzes', (event) ->
     if($(event.target).val() is 'vasarlas')
-      updateCharacter(true)
+      updateCharacterAndSet(true)
     else
-      updateCharacter(false)
+      updateCharacterAndSet(false)
   $('form').on 'change', 'select[name^="tipus"]', () ->
     renderAllSpecialModifiers()
   $('form').on 'change', 'select, input[type="radio"]', update
