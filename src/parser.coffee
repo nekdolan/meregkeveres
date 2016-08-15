@@ -214,7 +214,7 @@ calculateCost = (modifiers) ->
     poison = costMultipliers[eros.poisonType]
     effectCost = poison.hatas[eros.effectType]
     levelCost = poison.szint[data.szint]
-    durationCost = if data.idotartam is 'maradando' then 4 else 1
+    durationCost = if data.idotartam is 'maradando' and eros.effectType isnt 'halal' then 4 else 1
     creationCost = if data.beszerzes is 'vasarlas' then 2 else 1
     return levelCost * effectCost * durationCost * creationCost
 
