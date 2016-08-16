@@ -180,6 +180,7 @@ specialDifficultyModifiers = {
 specialDifficultyModifierEffects = {
   labels: ['Erő','All.','Gyo.','Ügy.','Ake.','Aszt.','Int.','Érz.','KÉ','TÉ','VÉ','CÉ','varázslás']
   semmi : [0,0,0,0,0,0,0,0,0,0,0,0,'igen']
+  alvas : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
   halal : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
   ajulas : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
 #  fp_vesztes : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
