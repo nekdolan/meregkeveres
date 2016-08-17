@@ -221,12 +221,12 @@ updateCharacterAndSet = (selected) ->
     $(this).children('option:last').prop('selected', selected);
 
 padHeader = () ->
-  topHeight = $('.navbar-fixed-top > .container').height();
+  topHeight = $('.navbar-fixed-top > div').height();
   $('#padding').height(topHeight + 10);
 
 init = () ->
   if(window.self isnt window.top)
-    $('body').css('background-color','transparent')
+#    $('body').css('background-color','transparent')
     $('div.container').attr('class','container-fluid')
   renderModifiers()
   renderNegativeModifiers()
