@@ -161,10 +161,11 @@ alchemy = {
 
 specialDifficultyModifierEffects = {
   labels: ['Erő','All.','Gyo.','Ügy.','Ake.','Aszt.','Int.','Érz.','KÉ','TÉ','VÉ','CÉ','varázslás']
-  semmi : [0,0,0,0,0,0,0,0,0,0,0,0,'igen']
-  alvas : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
-  halal : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
-  ajulas : [0,0,0,0,0,0,0,0,0,0,0,0,'nem']
+  semmi : "A méreg valamilyen oknál fogva nem hat."
+  alvas : "Az áldozat bizonyos időre eszméletét veszti, nem tud a külvilágról."
+  benultsag : "Az áldozat akaratlagos mogásra képtelen"
+  halal : "Az áldozat meghal, egyszerű gyógyítás hasznavehetetlen."
+  ajulas : "Az áldozat bizonyos időre eszméletét veszti, nem tud a külvilágról."
   kabultsag : [-2,-2,-2,-5,-5,-5,0,-4,15,-20,-25,0,'nem']
   gorcs : [-8,0,-8,-8,0,0,0,0,-30,-40,-35,-15,'nem']
   gyengeseg : ['1/2',-2,'3/4','3/4',0,0,0,0,-15,-20,-25,0,'igen']
@@ -236,7 +237,8 @@ calculateCost = (modifiers) ->
     poison = costMultipliers[eros.poisonType]
     effectCost = poison.hatas[eros.effectType]
     levelCost = poison.szint[data.szint]
-    durationCost = if data.idotartam is 'maradando' and eros.effectType isnt 'halal' then 4 else 1
+#    durationCost = if data.idotartam is 'maradando' and eros.effectType isnt 'halal' then 4 else 1
+    durationCost = if data.idotartam is 'maradando' then 4 else 1
     creationCost = if data.beszerzes is 'vasarlas' then 2 else 1
     return levelCost * effectCost * durationCost * creationCost
 
@@ -276,8 +278,8 @@ getDifficultyForModifier = (type, name, changed, charLevel) ->
     if difficulty? then difficulty else NaN
 
 calculateDifficulty = (modifiers, changed, charLevel) ->
-  calculateSkillModifiers(modifiers) + calculateSpecialDifficulty(modifiers) + _(modifiers)
-    .map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed, charLevel)
+  calculateSkillModifiers(modifiers) + calculateSpecialDifficulty(modifiers) +
+    _(modifiers).map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed, charLevel)
     .reduce (prev, next) -> prev + next
 
 getModifierValue = (modifiers, attr) ->

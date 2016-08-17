@@ -20,6 +20,7 @@ $export = $('#export')
 
 errorProvider = (errorMessage) ->
   $error.html("Hiba: <span>#{errorMessage}</span>" )
+  padHeader();
 
 getNumber = (label) ->
   $("#"+label).removeClass('hidden')
@@ -32,10 +33,11 @@ addErrorProvider(errorProvider)
 parser.init()
 
 clearDisplayValues = () ->
-  $values.children().addClass('hidden')
+  $values.children('.hidden_input').addClass('hidden')
 
 clearErrorMessage = () ->
   $error.html('')
+  padHeader();
 
 getHtmlDifficultyModifier = (type, names) ->
   html = "<div class='form-group'><label class='col-sm-6 control-label' for='id_#{type}'>#{t(type)}:</label> "
@@ -116,10 +118,10 @@ renderHiddenModifier = (inputModifier, inputKey, modifierName) ->
 
 renderHiddenModifiers = () ->
   content = _.reduce hiddenModifiers, ((res, next, key) ->
-    res + "<div class='hidden hidden_input' id='#{key}'>
+    res + "<div class='col-sm-12 col-md-6 hidden hidden_input' id='#{key}'>
       <legend>#{t(key)}</legend>\n" + (_.reduce next.inputs, ((res, next, innerKey) ->
       res + renderHiddenModifier(next,innerKey,key)),'') + "</div>" ),''
-  $values.html(content)
+  $values.append(content)
 
 renderEffectsDesc = () ->
   _.each ['eros','gyenge'], (level) ->
@@ -132,9 +134,12 @@ renderSpecialDifficultyModifierEffects = (specialModifier) ->
     return ''
   add = if window.self isnt window.top then 'background-color: rgba(100, 100, 100,0.1)' else ''
   content = "<div class='table-responsive'><table class='table' style='#{add}'><tr>"
-  content += _.reduce labels, ((res, next) -> res + "<th>#{next}</th>"), ''
-  content += '</tr><tr>'
-  content += _.reduce effects, ((res, next) -> res + "<td>#{if next is 0 then '-' else next}</td>"), ''
+  if typeof effects isnt 'string'
+    content += _.reduce labels, ((res, next) -> res + "<th>#{next}</th>"), ''
+    content += '</tr><tr>'
+    content += _.reduce effects, ((res, next) -> res + "<td>#{if next is 0 then '-' else next}</td>"), ''
+  else
+    content += "<th class='text-center'>#{effects}</th>"
   content += "</tr></table></div>"
 
 renderAlchemyResult = (difficulty) ->
@@ -215,10 +220,14 @@ updateCharacterAndSet = (selected) ->
   $('#negative_value_container_filed select, #alchemy_container_filed select').each () ->
     $(this).children('option:last').prop('selected', selected);
 
+padHeader = () ->
+  topHeight = $('.navbar-fixed-top > .container').height();
+  $('#padding').height(topHeight + 10);
+
 init = () ->
   if(window.self isnt window.top)
     $('body').css('background-color','transparent')
-    $('#main-body').attr('class','container-fluid')
+    $('div.container').attr('class','container-fluid')
   renderModifiers()
   renderNegativeModifiers()
   renderAlchemyModifiers()
@@ -243,6 +252,10 @@ init = () ->
     renderAllSpecialModifiers()
   $('form').on 'change', 'select, input[type="radio"]', update
   $('form').on 'input', 'input', update
-  setTimeout (()-> $('body').show()),0
+  setTimeout (()->
+    $('body').show()
+    padHeader();
+  ),0
+  $(window).resize(padHeader)
 
 init()

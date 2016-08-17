@@ -11,54 +11,62 @@
         }
         legend {
             border-width: 0px;
+            margin-bottom: 10px;
         }
         #values_container_field:empty, #error_container_field:empty {
             display: none;
+        }
+        .navbar-fixed-top {
+            background-color: #272b30 !important;
         }
     </style>
 </head>
 <body>
 <!--<div id="main-body" class="container-fluid">-->
-<div id="main-body" class="container">
-    <h2>
-        Méregkeverés Kalkulátor
-        <a target="_blank" href="http://kalandozok.hu/cikkgyujtemeny/kieg%C3%A9sz%C3%ADt%C5%91k/m%C3%A9rgek/m%C3%A9regkever%C3%A9s-k%C3%A9tfok%C3%BA-r720/">
-            <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
-        </a>
-        <a target="_blank" href="http://kalandozok.hu/cikkgyujtemeny/kieg%C3%A9sz%C3%ADt%C5%91k/m%C3%A9rgek/az-ynevi-m%C3%A9regkever%C3%A9s-r714/">
-            <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
-        </a>
-        <a id="export" class="pull-right btn btn-default" href="#" role="button">
-            Exportálás <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
-        </a>
-    </h2>
-    <legend id="results">
-        <span id="cost_container_field"></span>
-        <span id="kn_container_field"></span>
-        <span id="negative_kn_container_field"></span>
-        <span id="alchemy_result_container_field"></span>
-        <span id="difference_container_field"></span>
-    </legend>
-    <div class="row">
-        <div class="col-xs-12">
-            <div id="error_container_field" class="alert alert-danger"></div>
+<div class="navbar-fixed-top">
+    <div class="container">
+        <h2>
+            Méregkeverés Kalkulátor
+            <a target="_blank" href="http://kalandozok.hu/cikkgyujtemeny/kieg%C3%A9sz%C3%ADt%C5%91k/m%C3%A9rgek/m%C3%A9regkever%C3%A9s-k%C3%A9tfok%C3%BA-r720/">
+                <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+            </a>
+            <a target="_blank" href="http://kalandozok.hu/cikkgyujtemeny/kieg%C3%A9sz%C3%ADt%C5%91k/m%C3%A9rgek/az-ynevi-m%C3%A9regkever%C3%A9s-r714/">
+                <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+            </a>
+            <a id="export" class="pull-right btn btn-default" href="#" role="button">
+                Exportálás <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
+            </a>
+        </h2>
+        <legend id="results">
+            <span id="cost_container_field"></span>
+            <span id="kn_container_field"></span>
+            <span id="negative_kn_container_field"></span>
+            <span id="alchemy_result_container_field"></span>
+            <span id="difference_container_field"></span>
+        </legend>
+        <div class="row">
+            <div class="col-xs-12">
+                <div id="error_container_field" class="alert alert-danger"></div>
+            </div>
         </div>
     </div>
+</div>
+<div id="padding">&nbsp;</div>
+<div class="container">
     <form class="form-horizontal" id="form_data" action="index.html" method="post">
         <div class="row">
             <div class="col-sm-12 col-md-5" id="main_container_field"></div>
             <div class="col-sm-12 col-md-7">
-                <div id="secondary_container_field"></div>
-                <div class="col-sm-12 col-md-6">
-                    <legend>Karakter</legend>
-                    <div id="negative_value_container_filed"></div>
-                </div>
-                <div class="col-sm-12 col-md-6">
-                    <legend>Alkímia és felszerelés</legend>
-                    <div id="alchemy_container_filed"></div>
-                </div>
-                <div class="col-sm-12 col-md-6">
-                    <div id="values_container_field" class=""></div>
+                <div class="row" id="secondary_container_field"></div>
+                <div class="row" id="values_container_field">
+                    <div class="col-sm-12 col-md-6">
+                        <legend>Karakter</legend>
+                        <div id="negative_value_container_filed"></div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <legend>Alkímia és felszerelés</legend>
+                        <div id="alchemy_container_filed"></div>
+                    </div>
                 </div>
             </div>
         </div>
