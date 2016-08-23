@@ -196,6 +196,7 @@ errorMessages =
   noIdenticalEffect : "Két hatás nem lehet azonos!"
   fp_vesztes : "A beírt értéknek számnak kell lennie!"
   fp_overflow : 'Az fp vesztés nem lehet 15-nél nagyobb ha nincs méregkeverés mf-je a kalandozónak'
+  fp_general_overflow : 'Az erősebb hatásként FP-vesztés okozó mérgek esetében az Fp-vesztés dobáskódjának maximális eredménye nem haladhatja meg az adott méreg szintjének hatszorosát. Gyengébb hatás esetében a háromszorosát.'
   tobb : "A beírt értéknek számnak kell lennie!"
   fajta_error : "Ezt a típust csak mesterfokú méregkeverés képzettséggel lehet kikeverni!"
   szint_error : "Ilyen szintű mérget csak mesterfokú méregkeverés képzettséggel lehet kikeverni!"
@@ -254,7 +255,7 @@ valueDifficultyCalculator =
   fp_vesztes_eros : (val) -> 2 * val
   fp_vesztes_gyenge : (val) -> val
 
-getDifficultyForModifier = (type, name, changed, charLevel) ->
+getDifficultyForModifier = (type, name, changed, charLevel, poisonLevel) ->
     if(type in ['eros','gyenge'])
       if(type is 'gyenge' and name isnt 'fp_vesztes')
         return 0
@@ -274,12 +275,16 @@ getDifficultyForModifier = (type, name, changed, charLevel) ->
           if charLevel isnt 'mf' and difficulty > 15
             sendError('fp_overflow')
             return NaN
+          boundary = (if type is 'eros' then 6 else 3) * parseInt(poisonLevel.substr(2),10)
+          if difficulty > boundary
+            sendError('fp_general_overflow')
+            return NaN
       difficulty = valueDifficultyCalculator[difficultyKey](difficulty)
     if difficulty? then difficulty else NaN
 
-calculateDifficulty = (modifiers, changed, charLevel) ->
+calculateDifficulty = (modifiers, changed, charLevel, poisonLevel) ->
   calculateSkillModifiers(modifiers) + calculateSpecialDifficulty(modifiers) +
-    _(modifiers).map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed, charLevel)
+    _(modifiers).map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed, charLevel, poisonLevel)
     .reduce (prev, next) -> prev + next
 
 getModifierValue = (modifiers, attr) ->

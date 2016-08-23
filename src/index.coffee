@@ -89,7 +89,7 @@ renderCost = () ->
 renderDifficulty = (item) ->
   formData = getFormData()
   negativeDifficulty = calculateNegativeDifficulty(formData)
-  difficulty = calculateDifficulty(formData, $(item).prop('name'), $('#id_meregkeveres').val())
+  difficulty = calculateDifficulty(formData, $(item).prop('name'), $('#id_meregkeveres').val(), $('#id_szint').val())
   success = difficulty <= negativeDifficulty
   if success is true
     knValue = 'elegendő'
