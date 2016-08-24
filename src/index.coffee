@@ -118,7 +118,7 @@ renderHiddenModifier = (inputModifier, inputKey, modifierName) ->
 
 renderHiddenModifiers = () ->
   content = _.reduce hiddenModifiers, ((res, next, key) ->
-    res + "<div class='col-xs-6 hidden hidden_input' id='#{key}'>
+    res + "<div class='col-xs-12 col-sm-6 hidden hidden_input' id='#{key}'>
       <legend>#{t(key)}</legend>\n" + (_.reduce next.inputs, ((res, next, innerKey) ->
       res + renderHiddenModifier(next,innerKey,key)),'') + "</div>" ),''
   $values.append(content)
