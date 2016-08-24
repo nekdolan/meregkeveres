@@ -193,7 +193,7 @@ errorMessages =
   ugyanaz : "A gyenge hatás fp értéke nem lehet az erős hatás fp értékének felénél több"
   overflow : "Az erős hatás szintje nem lehet alacsonyabb vagy egyenlő a gyenge hatás szintjénél!"
   idegenOverflow : "Nem létezik elegendően magas szintű, az erős idegen hatásnak megfelelő méreg!"
-  noIdenticalEffect : "Két hatás nem lehet azonos!"
+  noIdenticalEffect : "Két hatás nem lehet azonos, hacsak nem fp vesztés a hatás!"
   fp_vesztes : "A beírt értéknek számnak kell lennie!"
   fp_overflow : 'Az fp vesztés nem lehet 15-nél nagyobb ha nincs méregkeverés mf-je a kalandozónak'
   fp_general_overflow : 'Az erősebb hatásként FP-vesztés okozó mérgek esetében az Fp-vesztés dobáskódjának maximális eredménye nem haladhatja meg az adott méreg szintjének hatszorosát. Gyengébb hatás esetében a háromszorosát.'

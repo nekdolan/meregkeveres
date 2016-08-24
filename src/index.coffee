@@ -40,8 +40,8 @@ clearErrorMessage = () ->
   padHeader();
 
 getHtmlDifficultyModifier = (type, names) ->
-  html = "<div class='form-group'><label class='col-sm-6 control-label' for='id_#{type}'>#{t(type)}:</label> "
-  html += "<div class='col-sm-6'><select class='form-control' id='id_#{type}' name='#{type}'>"
+  html = "<div class='form-group'><label class='col-xs-6 control-label' for='id_#{type}'>#{t(type)}:</label> "
+  html += "<div class='col-xs-6'><select class='form-control' id='id_#{type}' name='#{type}'>"
   html += _(names).
     keys().
     reduce ((sum, key)-> "#{sum}\n<option value='#{key}'>#{t(key)}</option>"), ''
@@ -112,13 +112,13 @@ renderHiddenModifier = (inputModifier, inputKey, modifierName) ->
   if typeof inputModifier isnt 'number'
     html = getHtmlDifficultyModifier(type, inputModifier)
   else
-    html = "<div class='form-group'><label class='col-sm-6 control-label' for='id_#{type}'>#{t(type)}:</label> "
-    html += "<div class='col-sm-6'><input min='#{inputModifier}' type='number' class='form-control' id='id_#{type}' name='#{type}' value='#{inputModifier}' />"
+    html = "<div class='form-group'><label class='col-xs-6 control-label' for='id_#{type}'>#{t(type)}:</label> "
+    html += "<div class='col-xs-6'><input min='#{inputModifier}' type='number' class='form-control' id='id_#{type}' name='#{type}' value='#{inputModifier}' />"
     html += "</div></div>"
 
 renderHiddenModifiers = () ->
   content = _.reduce hiddenModifiers, ((res, next, key) ->
-    res + "<div class='col-sm-12 col-md-6 hidden hidden_input' id='#{key}'>
+    res + "<div class='col-xs-6 hidden hidden_input' id='#{key}'>
       <legend>#{t(key)}</legend>\n" + (_.reduce next.inputs, ((res, next, innerKey) ->
       res + renderHiddenModifier(next,innerKey,key)),'') + "</div>" ),''
   $values.append(content)
@@ -221,8 +221,10 @@ updateCharacterAndSet = (selected) ->
     $(this).children('option:last').prop('selected', selected);
 
 padHeader = () ->
-  topHeight = $('.navbar-fixed-top > div').height();
-  $('#padding').height(topHeight + 10);
+  setTimeout (()->
+    topHeight = $('.navbar-fixed-top > div').height();
+    $('#padding').height(topHeight + 10);
+  ),0
 
 init = () ->
   if(window.self isnt window.top)
@@ -252,10 +254,11 @@ init = () ->
     renderAllSpecialModifiers()
   $('form').on 'change', 'select, input[type="radio"]', update
   $('form').on 'input', 'input', update
+
   setTimeout (()->
     $('body').show()
-    padHeader();
   ),0
+  padHeader();
   $(window).resize(padHeader)
 
 init()
