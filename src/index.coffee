@@ -17,6 +17,11 @@ $difficultydiff = $('#difference_container_field')
 $alchemy = $('#alchemy_container_filed')
 $alchemyResult = $('#alchemy_result_container_field')
 $export = $('#export')
+$exportUrl = $('#export_url')
+$new = $('#new')
+
+#pageUrl = window.location.href.replace('#','')
+pageUrl = document.location.protocol+'//'+document.location.hostname+document.location.pathname
 
 errorProvider = (errorMessage) ->
   $error.html("Hiba: <span>#{errorMessage}</span>" )
@@ -89,7 +94,7 @@ renderCost = () ->
 renderDifficulty = (item) ->
   formData = getFormData()
   negativeDifficulty = calculateNegativeDifficulty(formData)
-  difficulty = calculateDifficulty(formData, $(item).prop('name'), $('#id_meregkeveres').val(), $('#id_szint').val())
+  difficulty = calculateDifficulty(formData, $(item).prop('name'), $('#id_meregkeveres').val(), getFormData('eros'))
   success = difficulty <= negativeDifficulty
   if success is true
     knValue = 'elegendő'
@@ -175,17 +180,59 @@ getFormData = (attr) ->
   if !attr then return data
   _(data).find({name : attr})?.value
 
-exportData = (event) ->
+prepareData = () ->
   formAllData = getFormData()
-  values = _.map ($values.find('.hidden_input').not('.hidden').map () -> this.id), (id) ->
-    [t(id), hiddenModifiers[id].calculate($("##{id} :input").serializeArray())]
   formData = _.reject formAllData, (input) ->
     match = _.find hiddenModifiers, (modifier, modifierKey) ->
       new RegExp("#{modifierKey}.*").test(input.name)
-  difficulty = calculateDifficulty(formData, null, $('#id_meregkeveres').val())
+  difficulty = calculateDifficulty(formData, null, $('#id_meregkeveres').val(), getFormData('eros'))
   negativeDifficulty = calculateNegativeDifficulty(formData)
   alchemy = getAlchemyValue(difficulty)
   success =  difficulty <= negativeDifficulty and alchemy.test
+  {success, difficulty, negativeDifficulty, alchemy, formData}
+
+exportUrl = () ->
+  {success} = prepareData()
+  if success is false
+    errorProvider('A mérget nem lehet kikeverni, ezért az nem exportálható!')
+    return
+  formAllData = getFormData()
+
+  res = _.map formAllData, (inputData) ->
+    $input = $("[name='#{inputData.name}']")
+    index = $input[0].selectedIndex
+    if index?
+      return index
+    else
+      value = $input.val()
+      if(!isNaN(value))
+        return value*1
+      $buttons = $("[name='#{inputData.name}']")
+      return $buttons.index($buttons.filter(':checked'))
+  url = "#{pageUrl}?#{btoa(_.join(res,'|'))}"
+  window.prompt("Másolás a vágólapra: Ctrl+C, Enter", url);
+
+importUrl = () ->
+  hash = window.location.href.replace(/(.*\?|\#.*)/g,'')
+  if(hash.length is 0 or hash is window.location.href)
+    return
+  values = atob(hash).split('|').map (value) -> value *1;
+  formAllData = getFormData()
+  _.forEach formAllData, (inputData, arrIndex)->
+    $input = $("[name='#{inputData.name}']")
+    index = $input[0].selectedIndex
+    value = values[arrIndex]
+    if index?
+      $($input.children()[value]).prop('selected', true);
+    else
+      if(/.*amount/.test(inputData.name))
+        $input.val(value);
+      else
+        $($("[name='#{inputData.name}']")[value]).prop('checked', true)
+  update()
+
+exportData = () ->
+  {success, difficulty, negativeDifficulty, alchemy, formData} = prepareData()
   cost = calculateCost(formData)
 
   if success is false
@@ -194,6 +241,9 @@ exportData = (event) ->
 
   name = prompt('Írj be egy fájlnevet a méregnek!', "mereg_#{(new Date()*1)}")
   if !name then return
+
+  values = _.map ($values.find('.hidden_input').not('.hidden').map () -> this.id), (id) ->
+    [t(id), hiddenModifiers[id].calculate($("##{id} :input").serializeArray())]
 
   results = [
     ['Név', name]
@@ -208,11 +258,12 @@ exportData = (event) ->
   saveData(name, 'mereg', data)
 
 update = (event) ->
+  target = event?.target or null
   renderEffectsDesc()
   clearDisplayValues()
   clearErrorMessage()
   renderCost()
-  difficulty = renderDifficulty(event.target)
+  difficulty = renderDifficulty(target)
   alchemy = renderAlchemyResult(difficulty.difficulty)
   renderSuccess(difficulty.success, alchemy)
 
@@ -226,10 +277,13 @@ padHeader = () ->
     $('#padding').height(topHeight + 10);
   ),0
 
+newPoison = () ->
+  window.location = pageUrl.replace(/\?.*/,'')
+
 init = () ->
   if(window.self isnt window.top)
-#    $('body').css('background-color','transparent')
     $('div.container').attr('class','container-fluid')
+    pageUrl = "http://kalandozok.hu/meregkevero"
   renderModifiers()
   renderNegativeModifiers()
   renderAlchemyModifiers()
@@ -242,7 +296,9 @@ init = () ->
   renderCost()
   clearErrorMessage()
   clearDisplayValues()
-  $export.click exportData
+  $export.click(exportData)
+  $exportUrl.click(exportUrl)
+  $new.click(newPoison)
   $('form').on 'change', '#id_tipus_fo', (event) ->
     $('#id_tipus_eros, #id_tipus_gyenge').val($(event.target).val())
   $('form').on 'change', '#id_beszerzes', (event) ->
@@ -254,7 +310,7 @@ init = () ->
     renderAllSpecialModifiers()
   $('form').on 'change', 'select, input[type="radio"]', update
   $('form').on 'input', 'input', update
-
+  importUrl();
   setTimeout (()->
     $('body').show()
   ),0

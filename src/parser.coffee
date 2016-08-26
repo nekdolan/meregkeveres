@@ -196,7 +196,7 @@ errorMessages =
   noIdenticalEffect : "Két hatás nem lehet azonos, hacsak nem fp vesztés a hatás!"
   fp_vesztes : "A beírt értéknek számnak kell lennie!"
   fp_overflow : 'Az fp vesztés nem lehet 15-nél nagyobb ha nincs méregkeverés mf-je a kalandozónak'
-  fp_general_overflow : 'Az erősebb hatásként FP-vesztés okozó mérgek esetében az Fp-vesztés dobáskódjának maximális eredménye nem haladhatja meg az adott méreg szintjének hatszorosát. Gyengébb hatás esetében a háromszorosát.'
+#  fp_general_overflow : 'Az erősebb hatásként FP-vesztés okozó mérgek esetében az Fp-vesztés dobáskódjának maximális eredménye nem haladhatja meg az adott méreg szintjének hatszorosát. Gyengébb hatás esetében a háromszorosát.'
   tobb : "A beírt értéknek számnak kell lennie!"
   fajta_error : "Ezt a típust csak mesterfokú méregkeverés képzettséggel lehet kikeverni!"
   szint_error : "Ilyen szintű mérget csak mesterfokú méregkeverés képzettséggel lehet kikeverni!"
@@ -253,9 +253,9 @@ valueProviders =
 valueDifficultyCalculator =
   tobb : (val) -> 30 * val
   fp_vesztes_eros : (val) -> 2 * val
-  fp_vesztes_gyenge : (val) -> val
+  fp_vesztes_gyenge : (val, eros) -> if(eros is 'fp_vesztes') then val else val * 2
 
-getDifficultyForModifier = (type, name, changed, charLevel, poisonLevel) ->
+getDifficultyForModifier = (type, name, changed, charLevel, eros) ->
     if(type in ['eros','gyenge'])
       if(type is 'gyenge' and name isnt 'fp_vesztes')
         return 0
@@ -272,19 +272,16 @@ getDifficultyForModifier = (type, name, changed, charLevel, poisonLevel) ->
         sendError(difficultyKey)
       else
         if changed isnt 'ignore'
-          if charLevel isnt 'mf' and difficulty > 15
-            sendError('fp_overflow')
-            return NaN
-          boundary = (if type is 'eros' then 6 else 3) * parseInt(poisonLevel.substr(2),10)
-          if difficulty > boundary
-            sendError('fp_general_overflow')
-            return NaN
-      difficulty = valueDifficultyCalculator[difficultyKey](difficulty)
+          if(name is 'fp_vesztes')
+            if charLevel isnt 'mf' and difficulty > 15
+              sendError('fp_overflow')
+              return NaN
+      difficulty = valueDifficultyCalculator[difficultyKey](difficulty, eros)
     if difficulty? then difficulty else NaN
 
-calculateDifficulty = (modifiers, changed, charLevel, poisonLevel) ->
+calculateDifficulty = (modifiers, changed, charLevel, eros) ->
   calculateSkillModifiers(modifiers) + calculateSpecialDifficulty(modifiers) +
-    _(modifiers).map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed, charLevel, poisonLevel)
+    _(modifiers).map (modifier) -> getDifficultyForModifier(modifier.name, modifier.value, changed, charLevel, eros)
     .reduce (prev, next) -> prev + next
 
 getModifierValue = (modifiers, attr) ->
@@ -346,8 +343,8 @@ specialConditions = {
   ugyanaz : (eros, gyenge, fo, data) ->
     if eros.poisonLevel != gyenge.poisonLevel or eros.effectLevel != gyenge.effectLevel or eros.effectType isnt 'fp_vesztes'
       return 0
-    difficultyEros = getDifficultyForModifier('eros', eros.effectType, 'ignore')
-    difficultyGyenge = getDifficultyForModifier('gyenge', eros.effectType, 'ignore')
+    difficultyEros = getDifficultyForModifier('eros', eros.effectType, 'ignore', null, 'fp_vesztes')
+    difficultyGyenge = getDifficultyForModifier('gyenge', eros.effectType, 'ignore', null, 'fp_vesztes')
     if difficultyEros / 4 < difficultyGyenge
       return NaN
     return 20
