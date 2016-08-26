@@ -281,7 +281,7 @@ padHeader = () ->
   ),0
 
 newPoison = () ->
-  window.location = pageUrl.replace(/\?.*/,'')
+  window.location.reload(false);
 
 init = () ->
   if(window.self isnt window.top)
