@@ -130,9 +130,9 @@ renderHiddenModifiers = () ->
 
 renderEffectsDesc = () ->
   _.each ['eros','gyenge'], (level) ->
-    $("#desc_#{level}").html(renderSpecialDifficultyModifierEffects($("[name='#{level}']:checked").val()))
+    $("#desc_#{level}").html(renderSpecialDifficultyModifierEffects($("[name='#{level}']:checked").val(),level))
   
-renderSpecialDifficultyModifierEffects = (specialModifier) ->
+renderSpecialDifficultyModifierEffects = (specialModifier, level) ->
   labels = specialDifficultyModifierEffects.labels
   effects = specialDifficultyModifierEffects[specialModifier]
   if !effects?
@@ -144,6 +144,8 @@ renderSpecialDifficultyModifierEffects = (specialModifier) ->
     content += '</tr><tr>'
     content += _.reduce effects, ((res, next) -> res + "<td>#{if next is 0 then '-' else next}</td>"), ''
   else
+    if(effects is 'special')
+      effects = "#{if level is 'eros' then 'Sikertelen' else 'Sikeres'} egészség próba esetén létrejövő hatás"
     content += "<th class='text-center'>#{effects}</th>"
   content += "</tr></table></div>"
 
@@ -269,7 +271,8 @@ update = (event) ->
 
 updateCharacterAndSet = (selected) ->
   $('#negative_value_container_filed select, #alchemy_container_filed select').each () ->
-    $(this).children('option:last').prop('selected', selected);
+    if($(this).prop('id') isnt 'id_recept')
+      $(this).children('option:last').prop('selected', selected);
 
 padHeader = () ->
   setTimeout (()->

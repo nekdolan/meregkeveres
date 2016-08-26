@@ -79,7 +79,7 @@ translate = do ->
     elettan : 'élettan'
     anatomia : 'anatómia'
     gyakorlat : 'gyakorlat'
-    recept : 'recept'
+    recept : 'szabálykönyvben megtalálható'
     kikeheverto : 'kikeverhető'
     af : 'alapfok'
     mf : 'mesterfok'
@@ -97,7 +97,8 @@ translate = do ->
     fp_vesztes_gyenge_dice : "Kocka típusa"
     fp_vesztes_gyenge_amount : "Kockák száma"
     tobb_amount : "Komponensek száma"
-
+    igen : "igen"
+    nem : "nem"
   }
   (text) ->
     dictionary[text] or text
@@ -119,7 +120,7 @@ negativeDifficultyModifiers = {
   meregkeveres : {nincs: 0, af: 100, mf : 200}
   herbalizmus : {nincs: 0, af: 8, mf : 15}
   elettan : {nincs: 0, af: 8, mf : 15}
-  recept : {nincs: 0, van: 50}
+  recept : {nem: 0, igen: 50}
 }
 
 alchemyModifiers = {
@@ -161,7 +162,8 @@ alchemy = {
 
 specialDifficultyModifierEffects = {
   labels: ['Erő','All.','Gyo.','Ügy.','Ake.','Aszt.','Int.','Érz.','KÉ','TÉ','VÉ','CÉ','varázslás']
-  semmi : "A méreg valamilyen oknál fogva nem hat."
+  semmi : "special"
+#  semmi : "A méreg valamilyen oknál fogva nem hat."
   alvas : "Az áldozat bizonyos időre eszméletét veszti, nem tud a külvilágról."
   benultsag : "Az áldozat akaratlagos mogásra képtelen"
   halal : "Az áldozat meghal, egyszerű gyógyítás hasznavehetetlen."
