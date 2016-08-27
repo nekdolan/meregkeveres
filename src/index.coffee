@@ -199,7 +199,6 @@ exportUrl = () ->
     errorProvider('A mérget nem lehet kikeverni, ezért az nem exportálható!')
     return
   formAllData = getFormData()
-
   res = _.map formAllData, (inputData) ->
     $input = $("[name='#{inputData.name}']")
     index = $input[0].selectedIndex
@@ -216,9 +215,10 @@ exportUrl = () ->
 
 importUrl = () ->
   hash = window.location.href.replace(/(.*\?|\#.*)/g,'')
-  if(hash.length is 0 or hash is window.location.href)
+  try
+    values = atob(hash).split('|').map (value) -> value * 1;
+  catch err
     return
-  values = atob(hash).split('|').map (value) -> value *1;
   formAllData = getFormData()
   _.forEach formAllData, (inputData, arrIndex)->
     $input = $("[name='#{inputData.name}']")
@@ -281,7 +281,7 @@ padHeader = () ->
   ),0
 
 newPoison = () ->
-  window.location.reload(false);
+  window.location = document.location.protocol+'//'+document.location.hostname+document.location.pathname
 
 init = () ->
   if(window.self isnt window.top)
