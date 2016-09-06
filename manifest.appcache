@@ -1,0 +1,18 @@
+CACHE MANIFEST
+index.html
+js/jquery-2.2.4.min.js
+js/bootstrap.min.js
+js/lodash.min.js
+js/xlsx.core.min.js
+js/blob.js
+js/filesaver.js
+js/save-data.js
+lib/parser.js
+lib/index.js
+fonts/glyphicons-halflings-regular.eot
+fonts/glyphicons-halflings-regular.svg
+fonts/glyphicons-halflings-regular.ttf
+fonts/glyphicons-halflings-regular.woff
+fonts/glyphicons-halflings-regular.woff2
+css/bootstrap.min.css
+css/theme.css
