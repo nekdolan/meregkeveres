@@ -42,9 +42,9 @@ translate = do ->
     sz8 : '8. (-4 egészség módosító)',
     sz9 : '9. (-5 egészség módosító)',
     sz10: '10. (-6 egészség módosító)',
-    sz11: '11. (-6 egészség módosító)',
-    sz12: '12. (-6 egészség módosító)',
-    sz13: '13. (-6 egészség módosító)'
+    sz11: '11. (-7 egészség módosító)',
+    sz12: '12. (-8 egészség módosító)',
+    sz13: '13. (-9 egészség módosító)'
     h1: '1 hónap', h2: '2 hónap', h3: '3 hónap', h4: '4 hónap', h5: '5 hónap', h6: '6 hónap'
     egyszeri : 'egyszeri (1 kör)'
     rovid : 'rövid ideig ható méreg (K6x10 perc)'
