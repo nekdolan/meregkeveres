@@ -286,7 +286,7 @@ newPoison = () ->
 init = () ->
   if(window.self isnt window.top)
     $('div.container').attr('class','container-fluid')
-    pageUrl = "http://kalandozok.hu/meregkevero"
+    pageUrl = "http://kalandozok.hu/meregkevero/"
   renderModifiers()
   renderNegativeModifiers()
   renderAlchemyModifiers()
